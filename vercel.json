@@ -19,6 +19,7 @@
     }
   ],
   "env": {
-    "VITE_API_URL": "@api_url"
+    "VITE_API_URL": "@api_url",
+    "VITE_AI_MODEL_URL": "@ai_model_url"
   }
 }

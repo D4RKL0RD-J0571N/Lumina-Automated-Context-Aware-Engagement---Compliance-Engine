@@ -96,7 +96,7 @@ def handler(request):
                     })
                 }
         
-        elif path.startswith('/api/v1/orchestrate/') or path.startswith('/orchestrate/'):
+        elif path == '/api/v1/orchestrate/' or path == '/orchestrate/':
             if method == 'POST':
                 try:
                     body = request.get_json()

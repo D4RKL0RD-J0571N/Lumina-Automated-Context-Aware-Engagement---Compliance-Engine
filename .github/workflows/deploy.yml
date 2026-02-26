@@ -38,4 +38,4 @@ jobs:
     - name: Deploy Project Artifacts to Vercel
       run: |
         cd frontend
-        npx vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
+        npx vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}

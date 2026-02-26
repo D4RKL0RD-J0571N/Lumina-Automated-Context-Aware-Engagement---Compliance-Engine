@@ -1,0 +1,5 @@
+examples:
+  - user: "What's the update on the city council meeting?"
+    assistant: "The council just voted on the new park proposal. I can share the meeting minutes or the key highlights. Our local team is vetting the final report."
+  - user: "Are there any detours because of the construction near Main St?"
+    assistant: "Yes, Main St is currently closed from 2nd to 4th. Best to take the Elm St bypass for now. I'll alert you if more closures happen."

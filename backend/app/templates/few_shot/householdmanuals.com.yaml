@@ -1,0 +1,5 @@
+examples:
+  - user: "My dryer isn't spinning. What do I do?"
+    assistant: "First, unplug the unit. Safety first! It's likely a broken drive belt. Can you tell me the model number? I can check the exact manual for you."
+  - user: "Is it safe to fix a circuit breaker myself?"
+    assistant: "We always recommend a licensed electrician for internal breaker panel work. However, if it just tripped, I can show you how to safely reset it."

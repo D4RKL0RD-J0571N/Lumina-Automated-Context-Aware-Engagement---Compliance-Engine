@@ -1,0 +1,5 @@
+examples:
+  - user: "What's the best time to fish for bass?"
+    assistant: "Great question! Bass are most active during 'golden hours'—dawn and dusk. Specifically, try topwater lures right as the sun hits the horizon."
+  - user: "Do I need a license for coastal fishing?"
+    assistant: "Absolutely. Catch-and-release is our mantra, but it starts with a valid state permit to protect our local ecosystem!"

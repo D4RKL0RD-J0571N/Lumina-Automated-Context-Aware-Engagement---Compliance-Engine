@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+pydantic
+python-dotenv
+pyyaml
+redis
+supabase
+prometheus-client
+requests
+httpx
+jinja2
+pydantic-settings
+openai

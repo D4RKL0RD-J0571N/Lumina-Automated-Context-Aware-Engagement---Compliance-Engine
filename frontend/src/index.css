@@ -1,0 +1,164 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+@import "@fontsource/playfair-display";
+@import "@fontsource/jetbrains-mono";
+
+@theme {
+  --color-lumina-primary: #6366f1;
+  --color-lumina-secondary: #4f46e5;
+  --color-lumina-accent: #06b6d4;
+  --color-lumina-success: #10b981;
+  --color-lumina-warning: #f59e0b;
+  --color-lumina-danger: #ef4444;
+  --color-lumina-dark: #0f172a;
+  --color-lumina-darker: #020617;
+  --color-lumina-light: #f8fafc;
+
+  --font-display: "Playfair Display", serif;
+  --font-body: "Inter Variable", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+@layer base {
+  body {
+    @apply bg-lumina-darker text-lumina-light antialiased overflow-x-hidden;
+    font-family: var(--font-body);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  code,
+  pre {
+    font-family: var(--font-mono);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+.glass {
+  @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-xl;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  position: relative;
+}
+
+.glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(45deg,
+      transparent 30%,
+      rgba(99, 102, 241, 0.1) 50%,
+      transparent 70%);
+  animation: shimmer 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.glass-dark {
+  @apply bg-slate-900/40 backdrop-blur-lg border border-slate-700/50 rounded-3xl shadow-2xl;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(2, 6, 23, 0.9) 100%);
+  box-shadow:
+    0 35px 60px -15px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.glass-accent {
+  @apply bg-blue-500/10 backdrop-blur-md border border-blue-500/20 rounded-2xl;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(6, 182, 212, 0.05) 100%);
+  box-shadow:
+    0 8px 32px rgba(6, 182, 212, 0.2),
+    inset 0 1px 0 rgba(6, 182, 212, 0.3);
+}
+
+.btn-primary {
+  @apply px-4 py-2 bg-gradient-to-r from-lumina-primary to-lumina-secondary text-white font-medium rounded-lg hover:shadow-lg hover:shadow-indigo-500/30 transition-all active:scale-95;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-primary:hover::before {
+  left: 100%;
+}
+
+.glow-blue {
+  box-shadow:
+    0 0 20px rgba(59, 130, 246, 0.3),
+    0 0 40px rgba(59, 130, 246, 0.1),
+    0 0 60px rgba(59, 130, 246, 0.05);
+}
+
+@keyframes shimmer {
+
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.8);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-slate-700 rounded-full hover:bg-slate-600;
+}

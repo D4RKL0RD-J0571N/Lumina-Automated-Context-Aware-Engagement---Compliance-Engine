@@ -8,12 +8,16 @@
       "config": {
         "distDir": "frontend/dist"
       }
+    },
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "dest": "/api/index.py"
     },
     {
       "src": "/(.*)",
@@ -21,9 +25,10 @@
     }
   ],
   "env": {
-    "VITE_API_URL": "https://lashanda-nontelegraphical-ozella.ngrok-free.dev",
+    "VITE_API_URL": "/api",
     "VITE_AI_MODEL_URL": "https://lashanda-nontelegraphical-ozella.ngrok-free.dev",
     "VITE_APP_NAME": "Lumina Engine",
-    "VITE_APP_VERSION": "1.0.0"
+    "VITE_APP_VERSION": "1.0.0",
+    "BACKEND_URL": "https://lashanda-nontelegraphical-ozella.ngrok-free.dev"
   }
 }

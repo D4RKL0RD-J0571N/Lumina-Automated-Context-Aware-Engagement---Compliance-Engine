@@ -20,6 +20,18 @@
       "dest": "/api/index.py"
     },
     {
+      "src": "/domains/(.*)",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/orchestrate/(.*)",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/compliance/(.*)",
+      "dest": "/api/index.py"
+    },
+    {
       "src": "/(.*)",
       "dest": "/frontend/$1"
     }

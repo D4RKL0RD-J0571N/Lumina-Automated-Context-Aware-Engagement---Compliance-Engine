@@ -1,0 +1,7 @@
+# Vercel ignore file
+# This helps with project naming issues
+
+# Ignore backend files for frontend-only deployment
+backend/
+*.py
+requirements.txt

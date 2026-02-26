@@ -21,7 +21,9 @@
     }
   ],
   "env": {
-    "VITE_API_URL": "@api_url",
-    "VITE_AI_MODEL_URL": "@ai_model_url"
+    "VITE_API_URL": "https://lashanda-nontelegraphical-ozella.ngrok-free.dev",
+    "VITE_AI_MODEL_URL": "https://lashanda-nontelegraphical-ozella.ngrok-free.dev",
+    "VITE_APP_NAME": "Lumina Engine",
+    "VITE_APP_VERSION": "1.0.0"
   }
 }

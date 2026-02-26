@@ -115,12 +115,15 @@ def handler(request):
                     payload = {
                         "model": "your-model-name",  # Update with your actual model
                         "messages": [
-                            {"role": "user", "content": prompt}
+                            {"role": "system", "content": f"You are {domain_config['persona']} for {domain_name}. {domain_config['domain_knowledge']} Use a {domain_config['tone']} tone."},
+                            {"role": "user", "content": user_input}
                         ],
-                        "stream": False
+                        "stream": False,
+                        "max_tokens": 500,
+                        "temperature": 0.7
                     }
                     
-                    conn.request("POST", parsed_url.path, json.dumps(payload).encode(), {
+                    conn.request("POST", "/v1/chat/completions", json.dumps(payload).encode(), {
                         'Content-Type': 'application/json',
                         'Authorization': f'Bearer {os.environ.get("LM_STUDIO_API_KEY", "")}'
                     })

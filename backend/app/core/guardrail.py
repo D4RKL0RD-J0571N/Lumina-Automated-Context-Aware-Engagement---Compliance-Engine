@@ -34,6 +34,16 @@ class GuardrailEngine:
         "localnews.org": ["council", "meeting", "local", "community", "news", "reporting", "detour", "street", "park proposal"]
     }
 
+    # 🔹 GENERAL OUT-OF-SCOPE (Topics forbidden regardless of domain)
+    FORBIDDEN_GENERAL_TOPICS = [
+        "cars", "automotive", "sedan", "suv", "coupe", "convertible", "dealership",
+        "astronomy", "space shuttle", "galaxies",
+        "celebrity gossip", "hollywood",
+        "sports scores", "nfl", "nba", "fifa",
+        "recipe", "cooking tips", "how to bake",
+        "stock market tips", "investment advice"
+    ]
+
     @classmethod
     def scan_output(cls, message: str, domain_context: str = "") -> GuardrailResult:
         """
@@ -52,7 +62,17 @@ class GuardrailEngine:
                 rejection_message="This output contains prohibited security-sensitive content."
             )
         
-        # 2. Medical Check (High Risk)
+        # 2. General Knowledge / Out-of-Scope (Zero-Echo)
+        general_triggers = [kw for kw in cls.FORBIDDEN_GENERAL_TOPICS if kw in msg_lower]
+        if general_triggers:
+             return GuardrailResult(
+                classification=GuardrailClassification.OUT_OF_SCOPE,
+                triggered_keywords=general_triggers,
+                is_safe=False,
+                rejection_message=f"I am strictly authorized to assist with {domain_context or 'my assigned domain'}. General knowledge topics like '{general_triggers[0]}' are outside my operational scope."
+            )
+        
+        # 3. Medical Check (High Risk)
         medical_triggers = [kw for kw in cls.MEDICAL_KEYWORDS if kw in msg_lower]
         if medical_triggers:
             return GuardrailResult(

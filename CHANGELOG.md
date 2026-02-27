@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-02-27
+
+### **Security & Compliance (Sentinel Hardening II)**
+- **Optimized Zero-Echo**: Added deterministic blocking for General Knowledge topics (Automotive, Space, Sports) to ensure strict domain alignment.
+- **Edge Sync**: Corrected `index.ts` to use the same layered system prompt (L1/L2) as the Python backend.
+- **Improved Scanners**: Expanded lexicons for better out-of-scope detection across both deployment environments.
+
 ## [1.3.0] - 2026-02-27
 
 ### **Security & Compliance (Phase 7: Sentinel Hardening)**

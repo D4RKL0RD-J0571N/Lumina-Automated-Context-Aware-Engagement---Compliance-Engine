@@ -1,178 +1,104 @@
 # 🌕 Lumina: Automated Context-Aware Engagement & Compliance Engine
 
-[**English Version**](#english-documentation) | [**Versión en Español**](#documentación-en-español)
+[**English**](#what-is-lumina) | [**Español**](DOCS-ES.md)
 
 ---
 
-## 🚀 **MIGRATION COMPLETE** ✅
+## What is Lumina?
 
-**Successfully migrated from Flask to Supabase Edge Functions!**
+Lumina is an **AI orchestration engine** that brokers communications between Large Language Models and specialized business domains. It ensures AI responses remain **safe**, **domain-isolated**, and **contextually grounded** through a tripartite prompt architecture and real-time compliance guardrails.
+
+### Key Capabilities
+- **Multi-Domain Personas**: Each domain (e.g., fishing.com, householdmanuals.com) gets a tailored AI persona with strict context isolation
+- **Guardrail Engine**: Deterministic keyword-based scanner for security, legal, medical, and ad-policy violations
+- **Bleed-Through Detection**: Prevents cross-domain context contamination
+- **PII Redaction**: Automatic scrubbing of emails, phone numbers, and credit card data
+- **Streaming AI**: Real-time token streaming with compliance checks on every response
+
+## Architecture
+
+```
+┌─────────────────────────────────────────┐
+│       React + Vite Frontend (Vercel)    │
+├─────────────────────────────────────────┤
+│    Supabase Edge Functions (Deno/TS)    │
+│    Routing, compliance, domain logic    │
+├─────────────────────────────────────────┤
+│    Local LM Studio via ngrok tunnel     │
+│    LLM inference on local hardware      │
+└─────────────────────────────────────────┘
+```
+
+## Live Demo
 
 - **Frontend**: https://lumina-engine-two.vercel.app/
-- **Backend**: https://iilzvkqggnibzqbqshsc.supabase.co/functions/v1/lumina-api
-- **Status**: Production-ready with all endpoints functional
+- **API**: https://iilzvkqggnibzqbqshsc.supabase.co/functions/v1/lumina-api
 
----
+## Quick Start
 
-## English Documentation
+### Prerequisites
+- Node.js 18+
+- [Supabase CLI](https://supabase.com/docs/guides/cli)
 
-### Install the CLI
-
-Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
-
+### Frontend
 ```bash
-npm i supabase --save-dev
+cd frontend
+npm install
+npm run dev        # Development at localhost:3000
 ```
 
-When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
-
-```
-NODE_OPTIONS=--no-experimental-fetch yarn add supabase
-```
-
-> **Note**
-For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
-
-<details>
-  <summary><b>macOS</b></summary>
-
-  Available via [Homebrew](https://brew.sh). To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To install the beta release channel:
-  
-  ```sh
-  brew install supabase/tap/supabase-beta
-  brew link --overwrite supabase-beta
-  ```
-  
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Windows</b></summary>
-
-  Available via [Scoop](https://scoop.sh). To install:
-
-  ```powershell
-  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-  scoop install supabase
-  ```
-
-  To upgrade:
-
-  ```powershell
-  scoop update supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Linux</b></summary>
-
-  Available via [Homebrew](https://brew.sh) and Linux packages.
-
-  #### via Homebrew
-
-  To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-
-  #### via Linux packages
-
-  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
-
-  ```sh
-  sudo apk add --allow-untrusted <...>.apk
-  ```
-
-  ```sh
-  sudo dpkg -i <...>.deb
-  ```
-
-  ```sh
-  sudo rpm -i <...>.rpm
-  ```
-
-  ```sh
-  sudo pacman -U <...>.pkg.tar.zst
-  ```
-</details>
-
-<details>
-  <summary><b>Other Platforms</b></summary>
-
-  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
-
-  ```sh
-  go install github.com/supabase/cli@latest
-  ```
-
-  Add a symlink to the binary in `$PATH` for easier access:
-
-  ```sh
-  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
-  ```
-
-  This works on other non-standard Linux distros.
-</details>
-
-<details>
-  <summary><b>Community Maintained Packages</b></summary>
-
-  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
-  To install in your working directory:
-
-  ```bash
-  pkgx install supabase
-  ```
-
-  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
-</details>
-
-### Run the CLI
-
+### Backend (local development)
 ```bash
-supabase bootstrap
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
 ```
 
-Or using npx:
-
+### Tests
 ```bash
-npx supabase bootstrap
+# Backend tests
+cd backend && pytest tests/ -v
+
+# Frontend tests
+cd frontend && npm test
 ```
 
-The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+## Project Structure
 
-## Docs
-
-Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
-
-## Breaking changes
-
-We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
-
-However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
-
-## Developing
-
-To run from source:
-
-```sh
-# Go >= 1.22
-go run . help
 ```
+├── frontend/           # React + Vite + Tailwind dashboard
+│   ├── src/services/   # API client layer
+│   ├── src/components/ # Reusable UI components
+│   └── src/config/     # App constants and fallback data
+├── backend/            # FastAPI backend (local dev)
+│   ├── app/api/v1/     # REST endpoints
+│   ├── app/core/       # Guardrail, audit, config
+│   └── tests/          # pytest test suite
+├── supabase/functions/ # Edge Functions (production API)
+│   └── lumina-api/     # Main API function
+└── docs/               # DEPLOYMENT, DOCS-EN, DOCS-ES, etc.
+```
+
+## API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/domains` | GET | List all domain persona configurations |
+| `/compliance/metrics` | GET | Compliance pass rate and violation counters |
+| `/compliance/violations` | GET | Recent violation log entries |
+| `/orchestrate` | POST | Primary AI engagement (supports streaming) |
+| `/guardrail/scan` | POST | Direct compliance scan without LLM |
+| `/ping` | GET | Health check and LM Studio connectivity |
+
+## Documentation
+
+- [Technical Docs (English)](DOCS-EN.md)
+- [Technical Docs (Español)](DOCS-ES.md)
+- [Deployment Guide](DEPLOYMENT.md)
+- [Supabase Deployment](SUPABASE-DEPLOYMENT.md)
+- [Changelog](CHANGELOG.md)
+- [Contributing](CONTRIBUTING.md)
+
+## License
+
+See [LICENSE](LICENSE) for details.

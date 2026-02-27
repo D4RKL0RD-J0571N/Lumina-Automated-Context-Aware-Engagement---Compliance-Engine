@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-02-26
+
+### **CRITICAL FIX: Production 404 Resolved**
+- **FIXED**: All API endpoints returning 404 in production due to URL path mismatch
+- **Root Cause**: Frontend sent `/compliance/metrics` but Edge Function only matched `/api/v1/compliance/metrics`
+- **Solution**: Added `normalizePath()` to strip both `/lumina-api` and `/api/v1` prefixes
+
+### **API Changes**
+- **Added**: `handleGuardrailScan` endpoint for direct compliance scanning
+- **Improved**: Route matching now accepts both `/endpoint` and `/api/v1/endpoint` patterns
+- **Improved**: Error handling with proper TypeScript error type casting
+
+### **Frontend**
+- **Fixed**: Font files (Inter, Playfair Display, JetBrains Mono) 404 in production via `assetsInclude`
+- **Added**: API URL wiring integration test (`api.test.ts` — 11 test cases)
+
+### **Documentation**
+- **Updated**: DOCS-EN.md — Fixed architecture diagram, API reference table
+- **Updated**: DOCS-ES.md — Synced Spanish docs with English changes
+- **Rewritten**: DEPLOYMENT.md — Accurate Supabase Edge Functions architecture
+- **Rewritten**: README.md — Proper project description replacing CLI install docs
+
+### **Tests**
+- Backend: 19/19 passing (pytest)
+- Frontend: 3 files, 11/11 passing (vitest)
+
 ## [1.1.0] - 2026-02-26
 
 ### **MAJOR: Backend Migration Complete**

@@ -14,10 +14,10 @@ Lumina uses a layered approach to prompt engineering to ensure safety and person
 
 ```mermaid
 graph TD
-    User([User Input]) --> Frontend[React UI]
-    Frontend --> Vercel[Vercel Serverless /Flask]
+    User([User Input]) --> Frontend["React UI (Vercel)"]
+    Frontend --> EdgeFn["Supabase Edge Functions"]
     subgraph Engine ["Lumina Cloud-Local Bridge"]
-        Vercel --> Ngrok[Ngrok Tunnel]
+        EdgeFn --> Ngrok[Ngrok Tunnel]
         Ngrok --> LocalAI[Local LM Studio / v1]
         LocalAI --> L1[L1: Universal Safety]
         LocalAI --> L2[L2: Domain Registry]
@@ -29,10 +29,10 @@ graph TD
 ```
 
 ## 3. Hybrid Orchestration Layer
-Lumina 0.4.0 introduces a **Hybrid Cloud-Local Bridge**. This allows the high-performance React frontend and Flask API to live on **Vercel**, while the heavy Large Language Models run on **local hardware** (via LM Studio). 
+Lumina 0.4.0 introduces a **Hybrid Cloud-Local Bridge**. The React frontend lives on **Vercel**, while the API layer runs as **Supabase Edge Functions** (TypeScript/Deno), and the heavy Large Language Models run on **local hardware** (via LM Studio). 
 
 *   **Security**: ngrok provides a secure tunnel with `ngrok-skip-browser-warning` headers to bypass intermediate pages.
-*   **Resilience**: The backend handles a 60s timeout to accommodate local inference speeds.
+*   **Resilience**: The Edge Function handles a 55s timeout to accommodate local inference speeds.
 *   **Portability**: The system can be switched to full-cloud (OpenAI/Anthropic) by simply updating the `LM_STUDIO_URL` environment variable.
 
 ## 3. Core Components
@@ -66,10 +66,12 @@ Lumina is instrumented with **Prometheus** metrics to track:
 ## 5. API Reference
 | Endpoint | Method | Description |
 | :--- | :--- | :--- |
-| `/api/v1/orchestrate/` | `POST` | Primary AI engagement endpoint (Supports Streaming). |
-| `/api/v1/domains/` | `GET` | Lists all active domain personas. |
-| `/api/v1/domains/{name}` | `PUT` | Updates domain configuration dynamically. |
-| `/metrics` | `GET` | Prometheus scraping endpoint. |
+| `/orchestrate` | `POST` | Primary AI engagement endpoint (Supports Streaming). |
+| `/domains` | `GET` | Lists all active domain personas. |
+| `/compliance/metrics` | `GET` | Returns compliance pass rate and violation counters. |
+| `/compliance/violations` | `GET` | Returns recent violation log entries. |
+| `/guardrail/scan` | `POST` | Direct guardrail compliance scan without LLM. |
+| `/ping` | `GET` | Health check and LM Studio connectivity status. |
 
 ## 6. FAQ (Frequently Asked Questions)
 

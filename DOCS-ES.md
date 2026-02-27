@@ -14,10 +14,10 @@ Lumina utiliza un enfoque por capas para la ingeniería de prompts con el fin de
 
 ```mermaid
 graph TD
-    User([Entrada Usuario]) --> Frontend[React UI]
-    Frontend --> Vercel[Vercel Serverless /Flask]
+    User([Entrada Usuario]) --> Frontend["React UI (Vercel)"]
+    Frontend --> EdgeFn["Supabase Edge Functions"]
     subgraph Engine ["Lumina Cloud-Local Bridge"]
-        Vercel --> Ngrok[Túnel Ngrok]
+        EdgeFn --> Ngrok[Túnel Ngrok]
         Ngrok --> LocalAI[LM Studio Local / v1]
         LocalAI --> L1[L1: Seguridad Universal]
         LocalAI --> L2[L2: Registro Dominio]
@@ -29,10 +29,10 @@ graph TD
 ```
 
 ## 3. Capa de Orquestación Híbrida
-Lumina 0.4.0 introduce un **Puente Híbrido Nube-Local**. Esto permite que el frontend de React de alto rendimiento y la API de Flask vivan en **Vercel**, mientras que los LLMs pesados se ejecutan en **hardware local** (vía LM Studio).
+Lumina 0.4.0 introduce un **Puente Híbrido Nube-Local**. El frontend de React vive en **Vercel**, mientras que la capa de API se ejecuta como **Supabase Edge Functions** (TypeScript/Deno), y los LLMs pesados se ejecutan en **hardware local** (vía LM Studio).
 
 *   **Seguridad**: ngrok proporciona un túnel seguro con cabeceras `ngrok-skip-browser-warning`.
-*   **Resiliencia**: El backend maneja un tiempo de espera de 60 segundos.
+*   **Resiliencia**: La Edge Function maneja un tiempo de espera de 55 segundos.
 *   **Portabilidad**: El sistema puede cambiarse a la nube completa actualizando la variable `LM_STUDIO_URL`.
 
 ## 3. Componentes Principales
@@ -66,10 +66,12 @@ Lumina está instrumentado con métricas de **Prometheus** para rastrear:
 ## 5. Referencia de la API
 | Punto de Enlace | Método | Descripción |
 | :--- | :--- | :--- |
-| `/api/v1/orchestrate/` | `POST` | Punto de entrada principal para la IA (Soporta Streaming). |
-| `/api/v1/domains/` | `GET` | Lista todas las personalidades de dominio activas. |
-| `/api/v1/domains/{name}` | `PUT` | Actualiza la configuración del dominio dinámicamente. |
-| `/metrics` | `GET` | Punto de enlace para recolección de Prometheus. |
+| `/orchestrate` | `POST` | Punto de entrada principal para la IA (Soporta Streaming). |
+| `/domains` | `GET` | Lista todas las personalidades de dominio activas. |
+| `/compliance/metrics` | `GET` | Devuelve la tasa de cumplimiento y contadores de violaciones. |
+| `/compliance/violations` | `GET` | Devuelve las entradas recientes del registro de violaciones. |
+| `/guardrail/scan` | `POST` | Escaneo directo de cumplimiento de guardrails sin LLM. |
+| `/ping` | `GET` | Verificación de salud y estado de conectividad de LM Studio. |
 
 ## 6. FAQ (Preguntas Frecuentes)
 

@@ -1,3 +1,5 @@
+// @ts-nocheck — This file runs in Supabase's Deno runtime, not Node.js.
+// Deno URL-based imports and globals (Deno.env) are resolved at deploy time.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
@@ -30,6 +32,19 @@ const DOMAINS = {
 const LM_STUDIO_URL = Deno.env.get('LM_STUDIO_URL') || 'https://lashanda-nontelegraphical-ozella.ngrok-free.dev'
 const LM_STUDIO_API_KEY = Deno.env.get('LM_STUDIO_API_KEY') || 'lm-studio'
 
+/**
+ * Normalize incoming path by stripping the Edge Function prefix (/lumina-api)
+ * AND the optional /api/v1 prefix. This ensures the frontend (which sends
+ * /compliance/metrics) and direct API callers (who send /api/v1/compliance/metrics)
+ * both resolve to the same handler.
+ */
+function normalizePath(rawPath: string): string {
+  let p = rawPath.replace(/^\/lumina-api/, '')
+  p = p.replace(/^\/api\/v1/, '')
+  p = p.replace(/\/+$/, '') || '/'     // strip trailing slashes, keep root as "/"
+  return p
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -38,44 +53,46 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url)
-    const path = url.pathname
+    const normalized = normalizePath(url.pathname)
 
-    // Remove /lumina-api prefix if present
-    const cleanPath = path.replace(/^\/lumina-api/, '')
-
-    // Route handling
-    if (cleanPath === '/api/v1/ping' || cleanPath === '/api/ping') {
+    // Route handling — matches both /compliance/metrics AND /api/v1/compliance/metrics
+    if (normalized === '/ping' || normalized === '/api/ping') {
       return handlePing()
     }
 
-    if (cleanPath === '/api/v1/domains/' || cleanPath === '/api/v1/domains') {
+    if (normalized === '/domains') {
       return handleGetDomains()
     }
 
-    if (cleanPath === '/api/v1/compliance/metrics') {
+    if (normalized === '/compliance/metrics') {
       return handleGetMetrics()
     }
 
-    if (cleanPath === '/api/v1/compliance/violations') {
+    if (normalized === '/compliance/violations') {
       return handleGetViolations()
     }
 
-    if (cleanPath === '/api/v1/orchestrate/' || cleanPath === '/api/v1/orchestrate') {
+    if (normalized === '/orchestrate') {
       return handleOrchestrate(req)
     }
 
+    if (normalized === '/guardrail/scan' && req.method === 'POST') {
+      return handleGuardrailScan(req)
+    }
+
     // Return function info for root path
-    if (cleanPath === '/' || cleanPath === '') {
+    if (normalized === '/') {
       return new Response(
         JSON.stringify({
           message: "Lumina API is working!",
           version: "1.0.0",
           endpoints: [
-            "/api/v1/ping",
-            "/api/v1/domains",
-            "/api/v1/compliance/metrics",
-            "/api/v1/compliance/violations",
-            "/api/v1/orchestrate"
+            "/domains",
+            "/compliance/metrics",
+            "/compliance/violations",
+            "/orchestrate",
+            "/guardrail/scan",
+            "/ping"
           ]
         }),
         {
@@ -86,7 +103,7 @@ serve(async (req) => {
 
     // Catch-all for other routes
     return new Response(
-      JSON.stringify({ error: `Path ${path} not found` }),
+      JSON.stringify({ error: `Path ${url.pathname} not found`, normalized }),
       {
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -96,7 +113,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('API Error:', error)
     return new Response(
-      JSON.stringify({ error: 'Internal server error', details: error.message }),
+      JSON.stringify({ error: 'Internal server error', details: (error as Error).message }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -124,7 +141,7 @@ async function handlePing() {
     return new Response(
       JSON.stringify({
         status: "offline",
-        error: error.message,
+        error: (error as Error).message,
         url: LM_STUDIO_URL
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -228,7 +245,7 @@ async function handleOrchestrate(req: Request) {
         source = "lm_studio"
       }
     } catch (error) {
-      ai_response = `Error: Failed to reach local AI. Check ngrok tunnel. (${error.message.substring(0, 50)})`
+      ai_response = `Error: Failed to reach local AI. Check ngrok tunnel. (${(error as Error).message.substring(0, 50)})`
       source = "fallback"
     }
 
@@ -278,8 +295,56 @@ async function handleOrchestrate(req: Request) {
     return new Response(
       JSON.stringify({
         error: 'Orchestration failed',
-        details: error.message
+        details: (error as Error).message
       }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    )
+  }
+}
+
+/** Guardrail scan — mirrors backend keyword-based compliance checking */
+async function handleGuardrailScan(req: Request) {
+  try {
+    const data = await req.json()
+    const content = (data.content || '').toLowerCase()
+
+    const SECURITY_KEYWORDS = ['idiot', 'stupid', 'kill', 'hate', 'die', 'attack']
+    const LEGAL_KEYWORDS = ['legal advice', 'lawyer', 'lawsuit', 'sue', 'attorney']
+    const MEDICAL_KEYWORDS = ['prescription', 'diagnose', 'medication', 'dosage', 'mg']
+    const AD_POLICY_KEYWORDS = ['click here', 'free money', 'guaranteed', 'act now', 'free cash']
+
+    let is_safe = true
+    let classification = 'in_scope'
+    let rejection_message = ''
+
+    if (SECURITY_KEYWORDS.some(kw => content.includes(kw))) {
+      is_safe = false
+      classification = 'security_violation'
+      rejection_message = 'Content flagged for security violation'
+    } else if (LEGAL_KEYWORDS.some(kw => content.includes(kw))) {
+      is_safe = false
+      classification = 'legal_violation'
+      rejection_message = 'Content flagged for legal policy violation'
+    } else if (MEDICAL_KEYWORDS.some(kw => content.includes(kw))) {
+      is_safe = false
+      classification = 'medical_violation'
+      rejection_message = 'Content flagged for medical policy violation'
+    } else if (AD_POLICY_KEYWORDS.some(kw => content.includes(kw))) {
+      is_safe = false
+      classification = 'ad_policy_violation'
+      rejection_message = 'Content flagged for advertising policy violation'
+    }
+
+    return new Response(
+      JSON.stringify({ is_safe, classification, rejection_message }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ error: 'Scan failed', details: (error as Error).message }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

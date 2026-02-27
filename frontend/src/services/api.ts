@@ -1,11 +1,23 @@
 import axios from 'axios';
 
+const getBaseURL = () => {
+    const envUrl = import.meta.env.VITE_API_URL;
+    // If we're in production on Vercel, always prefer relative path to avoid the "Short Circuit"
+    if (envUrl && envUrl.startsWith('http') && !window.location.href.includes('localhost')) {
+        console.warn('Lumina: External VITE_API_URL detected in production! Forced bridging to /api/v1 for compliance safety.');
+        return '/api/v1';
+    }
+    return envUrl || 'http://localhost:8000/api/v1';
+};
+
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1',
+    baseURL: getBaseURL(),
     headers: {
         'Content-Type': 'application/json',
     },
 });
+
+console.log('Lumina API initialized with Bridge:', getBaseURL());
 
 export interface OrchestrateResponse {
     domain: string;
@@ -46,7 +58,7 @@ export const orchestrateAPI = {
         return response.data;
     },
     orchestrateStream: async (data: { user_input: string; domain_name: string; rag_context?: string }, onToken: (token: string) => void, onFinal: (metadata: StreamFinalPayload) => void) => {
-        const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+        const API_BASE_URL = getBaseURL();
         const response = await fetch(`${API_BASE_URL}/orchestrate/`, {
             method: 'POST',
             headers: {

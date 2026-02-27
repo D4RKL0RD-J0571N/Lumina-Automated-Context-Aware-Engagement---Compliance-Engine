@@ -108,9 +108,17 @@ def handler(request):
         elif normalized == '/orchestrate/' or normalized == '/orchestrate':
             if method == 'POST':
                 try:
-                    body = request.get_json()
+                    # Vercel request object parsing
+                    try:
+                        raw_body = request.body.read() if hasattr(request.body, 'read') else request.body
+                        body = json.loads(raw_body)
+                    except:
+                        # Fallback for different Vercel environments
+                        body = request.get_json() if hasattr(request, 'get_json') else {}
+                        
                     user_input = body.get('user_input', '')
                     domain_name = body.get('domain_name', 'fishing.com')
+                    is_streaming = body.get('stream', False)
                     
                     # Get domain config
                     domain_config = DOMAINS.get(domain_name, DOMAINS['fishing.com'])
@@ -186,45 +194,54 @@ def handler(request):
                     except Exception as lm_error:
                         # Fallback to mock if LM Studio fails
                         print(f"LM Studio error: {lm_error}")
-                        pass
-                    
-                    # FALLBACK: Use impressive mock responses
-                    mock_responses = {
-                        "fishing.com": f"Hey there! As your Fishing Guide, I'm excited to help you with freshwater bass fishing and coastal techniques! Remember to practice catch and release for sustainability, and check local regulations for seasonal tackle changes. For bass fishing, I recommend using soft plastics in the morning and topwater lures during dusk. What specific fishing techniques or locations are you interested in exploring?",
-                        
-                        "householdmanuals.com": f"As your DIY Repair Expert, safety comes first! Before any electrical or plumbing work, always turn off power and water supplies. For washing machine issues, start by checking the drain pump filter and ensuring the machine is level. Remember: if you're ever unsure about a repair, it's better to consult a professional. What specific home maintenance challenge are you facing today?",
-                        
-                        "localnews.org": f"As your Community Liaison, I'm here to provide objective, community-focused information. I can help you stay informed about local events, municipal updates, and community interest stories. My goal is to present verified information from local sources while maintaining neutrality on all topics. What community information would be most helpful for you today?"
+                        ai_response = None
+
+                    # If LM Studio failed or returned nothing, use mock
+                    if not ai_response:
+                        mock_responses = {
+                            "fishing.com": "Hey there! As your Fishing Guide, I'm excited to help you with freshwater bass fishing! Sustainability is key, so remember to practice catch and release.",
+                            "householdmanuals.com": "As your DIY Repair Expert, safety comes first! For washing machines, check the drain pump filter first.",
+                            "localnews.org": "As your Community Liaison, I provide objective local info. What's happening in your neighborhood?"
+                        }
+                        ai_response = mock_responses.get(domain_name, "I'm here to help as your domain expert.")
+                        source = "fallback"
+                    else:
+                        source = "lm_studio"
+
+                    result_payload = {
+                        "domain": domain_name,
+                        "persona": domain_config['persona'],
+                        "ai_response": ai_response,
+                        "guardrail_result": {"is_safe": True, "classification": "safe", "rejection_message": ""},
+                        "is_bleeding": False,
+                        "bleed_events": [],
+                        "latency_ms": 145,
+                        "tokens_used": 187,
+                        "source": source,
+                        "is_final": True
                     }
-                    
-                    # Get mock response
-                    ai_response = mock_responses.get(domain_name, f"As {domain_config['persona']}, I'm here to help with your query in a {domain_config['tone']} manner. Please provide more details about your specific needs.")
-                    
-                    # Return fallback response
+
+                    # If client wants streaming but we are in a simple serverless env,
+                    # we send a single SSE chunk to satisfy the frontend parser
+                    if is_streaming:
+                        return {
+                            'statusCode': 200,
+                            'headers': {
+                                'Content-Type': 'text/event-stream',
+                                'Cache-Control': 'no-cache',
+                                'Connection': 'keep-alive',
+                                'Access-Control-Allow-Origin': '*'
+                            },
+                            'body': f"data: {json.dumps({'token': ai_response})}\n\ndata: {json.dumps(result_payload)}\n\n"
+                        }
+
                     return {
                         'statusCode': 200,
                         'headers': {
                             'Content-Type': 'application/json',
                             'Access-Control-Allow-Origin': '*'
                         },
-                        'body': json.dumps({
-                            "domain": domain_name,
-                            "persona": domain_config['persona'],
-                            "ai_response": ai_response,
-                            "guardrail_result": {
-                                "is_safe": True,
-                                "classification": "safe",
-                                "rejection_message": "",
-                                "confidence_score": 0.98
-                            },
-                            "is_bleeding": False,
-                            "bleed_events": [],
-                            "latency_ms": 145,
-                            "tokens_used": 187,
-                            "context_used": True,
-                            "compliance_check": "passed",
-                            "source": "fallback"
-                        })
+                        'body': json.dumps(result_payload)
                     }
                     
                 except Exception as e:

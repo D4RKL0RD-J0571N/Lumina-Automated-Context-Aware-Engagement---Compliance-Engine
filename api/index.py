@@ -47,8 +47,15 @@ def handler(request):
                 'body': ''
             }
         
+        # Normalize path — strip /api/v1 or /api prefix so all routes resolve consistently
+        normalized = path
+        if normalized.startswith('/api/v1'):
+            normalized = normalized[len('/api/v1'):]
+        elif normalized.startswith('/api'):
+            normalized = normalized[len('/api'):]
+        
         # Handle different API endpoints
-        if path == '/api/v1/domains/' or path == '/domains/':
+        if normalized == '/domains/' or normalized == '/domains':
             if method == 'GET':
                 response = {
                     'statusCode': 200,
@@ -60,7 +67,7 @@ def handler(request):
                 }
                 return response
         
-        elif path == '/api/v1/compliance/metrics' or path == '/compliance/metrics':
+        elif normalized == '/compliance/metrics':
             if method == 'GET':
                 return {
                     'statusCode': 200,
@@ -80,7 +87,7 @@ def handler(request):
                     })
                 }
                 
-        elif path == '/api/v1/compliance/violations' or path == '/compliance/violations':
+        elif normalized == '/compliance/violations':
             if method == 'GET':
                 return {
                     'statusCode': 200,
@@ -98,7 +105,7 @@ def handler(request):
                     })
                 }
         
-        elif path == '/api/v1/orchestrate/' or path == '/orchestrate/':
+        elif normalized == '/orchestrate/' or normalized == '/orchestrate':
             if method == 'POST':
                 try:
                     body = request.get_json()

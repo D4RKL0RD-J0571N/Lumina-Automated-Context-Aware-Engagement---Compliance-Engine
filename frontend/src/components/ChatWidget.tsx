@@ -37,14 +37,15 @@ const ChatWidget = () => {
         const loadDomains = async () => {
             try {
                 const domainsData = await orchestrateAPI.getDomains();
-                console.log('Loaded domains:', domainsData);
-                setDomains(domainsData);
-                if (Object.keys(domainsData).length > 0) {
-                    setActiveDomain(Object.keys(domainsData)[0]);
+                // Unwrap domains if nested
+                const unwrapped = domainsData.domains || domainsData;
+                console.log('Loaded domains:', unwrapped);
+                setDomains(unwrapped);
+                if (Object.keys(unwrapped).length > 0) {
+                    setActiveDomain(Object.keys(unwrapped)[0]);
                 }
             } catch (error) {
-                console.error('Failed to load domains:', error);
-                // Fallback domains for demo
+                console.error('Failed to load domains — using fallback:', error);
                 setDomains(FALLBACK_DOMAINS);
                 setActiveDomain(Object.keys(FALLBACK_DOMAINS)[0]);
             }
@@ -95,9 +96,30 @@ const ChatWidget = () => {
                 }
             );
         } catch (err) {
-            setMessages(prev => prev.map(m =>
-                m.id === aiMsgId ? { ...m, content: "Error: Engine connection timed out.", isError: true } : m
-            ));
+            console.warn('Streaming failed — falling back to non-streaming API', err);
+            try {
+                // FALLBACK: Use non-streaming orchestrate if streaming fails (e.g. Vercel limitations)
+                const result = await orchestrateAPI.orchestrate({
+                    user_input: userInput,
+                    domain_name: activeDomain
+                });
+
+                setMessages(prev => prev.map(m =>
+                    m.id === aiMsgId ? {
+                        ...m,
+                        content: result.guardrail_result.is_safe ? result.ai_response : `ERROR [Compliance]: ${result.guardrail_result.rejection_message}`,
+                        isViolation: !result.guardrail_result.is_safe,
+                        violationType: result.guardrail_result.classification || 'Policy Violation',
+                        isBleeding: result.is_bleeding,
+                        bleedEvents: result.bleed_events,
+                        metadata: result
+                    } : m
+                ));
+            } catch (fallbackErr) {
+                setMessages(prev => prev.map(m =>
+                    m.id === aiMsgId ? { ...m, content: "Lumina Engine Error: Connection timed out. Please check your network or try again later.", isError: true } : m
+                ));
+            }
         } finally {
             setIsLoading(false);
         }

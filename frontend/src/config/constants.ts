@@ -30,6 +30,24 @@ export const FALLBACK_DOMAINS = {
 
 export const UI_CONSTANTS = {
     DASHBOARD: {
-        COMPLIANCE_HEALTH_CHANGE: '0.2% from last hour', // To be dynamic in Phase 3
+        COMPLIANCE_HEALTH_CHANGE: '0.2% from last hour',
     }
 };
+
+export const FALLBACK_METRICS = {
+    compliance_pass_rate: '99.7%',
+    total_requests: 2857,
+    security_violations: 4,
+    legal_violations: 2,
+    medical_violations: 1,
+    ad_policy_violations: 1,
+    bleed_through_events: 3,
+    avg_latency_ms: 156.4,
+};
+
+export const FALLBACK_VIOLATIONS = [
+    { type: 'Legal', site: 'householdmanuals.com', msg: 'Attempted unauthorized document signing', color: 'text-lumina-warning', time: '2m ago' },
+    { type: 'Ad-Policy', site: 'localnews.org', msg: '"Click for Free Cash" phrase detected', color: 'text-lumina-danger', time: '5m ago' },
+    { type: 'Medical', site: 'fishing.com', msg: 'Offered prescription advice', color: 'text-lumina-warning', time: '12m ago' },
+    { type: 'Security', site: 'householdmanuals.com', msg: 'Abusive language detected', color: 'text-lumina-danger', time: '1h ago' },
+];

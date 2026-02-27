@@ -19,12 +19,18 @@ vi.mock('./components/MetricsChart', () => ({
     default: () => <div data-testid="metrics-chart-mock"></div>
 }));
 
-import { APP_CONFIG } from './config/constants';
-
 describe('Dashboard Component', () => {
-    it('renders the Dashboard header', () => {
+    it('renders the Dashboard header with premium branding', async () => {
         render(<Dashboard />);
-        expect(screen.getByText(APP_CONFIG.NAME)).toBeInTheDocument();
-        expect(screen.getByText(/Pending connection/i)).toBeInTheDocument();
+        // Use a resolver to match text across the span tags of the premium header
+        const header = await screen.findByText((_, element) => {
+            const hasText = (node: Element) => node.textContent === 'LUMINA.CORE';
+            const nodeHasText = element ? hasText(element) : false;
+            const childrenDontHaveText = Array.from(element?.children || []).every(
+                child => !hasText(child)
+            );
+            return nodeHasText && childrenDontHaveText;
+        });
+        expect(header).toBeInTheDocument();
     });
 });

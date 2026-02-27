@@ -81,7 +81,7 @@ export const orchestrateAPI = {
     },
     getDomains: async () => {
         const response = await api.get('/domains/');
-        return response.data;
+        return response.data.domains || response.data;
     },
 };
 

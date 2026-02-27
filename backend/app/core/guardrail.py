@@ -113,12 +113,17 @@ class GuardrailEngine:
                     if re.search(rf"\b{re.escape(kw.lower())}\b", msg_lower):
                         matches.append(kw)
                 
-                if len(matches) >= 2: # Sensitivity threshold
+                # 💡 PROACTIVE RECOMMENDATION: 
+                # Trigger if 2+ contextual keywords match, OR the primary (first) keyword matches.
+                primary_match = re.search(rf"\b{re.escape(keywords[0].lower())}\b", msg_lower)
+                
+                if len(matches) >= 2 or (len(matches) == 1 and primary_match):
+                    domain_label = domain.split('.')[0]
                     return GuardrailResult(
                         classification=GuardrailClassification.OUT_OF_SCOPE,
                         triggered_keywords=matches,
                         is_safe=False,
-                        rejection_message=f"I am strictly configured for {domain_context}. For information about {domain}, please switch contexts."
+                        rejection_message=f"I am strictly authorized for {domain_context}. However, I detected interest in {domain_label}. Please switch to the {domain} domain for specialized assistance."
                     )
 
         # 6. Ad-Policy / Monetization Check

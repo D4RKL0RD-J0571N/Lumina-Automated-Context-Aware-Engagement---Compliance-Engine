@@ -4,6 +4,19 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 ## [Sin publicar]
 
+## [1.3.5] - 2026-02-27
+
+### **Seguridad y Cumplimiento (Sugerencias Inteligentes)**
+- **Recomendaciones de Dominio Proactivas**: El motor de guardrail ahora detecta el interés en otros dominios gestionados y sugiere proactivamente cambiar (p. ej., "¿Interesado en la pesca? Cambia a fishing.com").
+- **Coincidencia de Precisión**: Se redujo el umbral de sensibilidad para las palabras clave primarias de dominio (p. ej., 'fishing', 'repair'). Una sola mención de una palabra clave primaria para un dominio cruzado ahora activa una recomendación útil en lugar de permitir que el prompt llegue a la persona equivocada.
+
+## [1.3.4] - 2026-02-27
+
+### **UI y Presentación (Prototipo Vivo)**
+- **Pulso del Motor (Jitter en Edge)**: Se añadió un algoritmo de jitter determinista a la Edge Function de Supabase para simular la fluctuación de métricas en tiempo real.
+- **Métricas Responsivas a la Sesión**: El tablero ahora fusiona la línea base simulada con las violaciones reales de la sesión del usuario (almacenadas en `localStorage`), haciendo que reaccione instantáneamente a las interacciones del usuario.
+- **Transparencia de Simulación**: Se renombró la placa de escudo a "Enterprise Simulation Active" para mayor claridad de marca.
+
 ## [1.3.3] - 2026-02-27
 
 ### **Seguridad y Cumplimiento (Refuerzo de Sentinel SSE)**

@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.5] - 2026-02-27
+
+### **Security & Compliance (Smart Suggestions)**
+- **Proactive Domain Recommendations**: The Guardrail Engine now detects interest in other managed domains and proactively suggests switching (e.g., "Interested in fishing? Switch to fishing.com").
+- **Precision Matching**: Lowered sensitivity threshold for primary domain keywords (e.g., 'fishing', 'repair'). A single mention of a primary keyword for a cross-domain now triggers a helpful recommendation instead of letting the prompt reach the wrong persona.
+
+## [1.3.4] - 2026-02-27
+
+### **UI & Presentation (Alive Prototype)**
+- **Engine Pulse (Edge Jitter)**: Added a deterministic jitter algorithm to the Supabase Edge Function to simulate real-time metrics fluctuation.
+- **Session-Responsive Metrics**: The dashboard now merges the mock baseline with actual user session violations (stored in `localStorage`), making it react to user interactions instantly.
+- **Simulation Transparency**: Renamed the shield badge to "Enterprise Simulation Active" for branding clarity.
+
 ## [1.3.3] - 2026-02-27
 
 ### **Security & Compliance (SSE Sentinel Hardening)**

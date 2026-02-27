@@ -422,11 +422,16 @@ class GuardrailEngine {
           return regex.test(msgLower);
         });
 
-        if (matches.length >= 2) { // Sensitivity threshold
+        // 💡 PROACTIVE RECOMMENDATION: 
+        // If 2+ contextual keywords match, OR the primary (first) keyword matches exactly.
+        const primaryMatch = msgLower.includes(keywords[0].toLowerCase());
+
+        if (matches.length >= 2 || (matches.length === 1 && primaryMatch)) {
+          const domainLabel = domain.split('.')[0]
           return {
             is_safe: false,
             classification: 'out_of_scope',
-            rejection_message: `I am strictly configured for ${normalizedDomain}. For information about ${domain}, please switch contexts.`
+            rejection_message: `I am strictly authorized for ${normalizedDomain}. However, I detected interest in ${domainLabel}. Please switch to the ${domain} domain for specialized assistance.`
           }
         }
       }

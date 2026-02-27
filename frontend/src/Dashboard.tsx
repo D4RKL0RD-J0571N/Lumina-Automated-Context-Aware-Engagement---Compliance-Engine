@@ -77,7 +77,7 @@ const Dashboard = () => {
             try {
                 const updatedMetrics = await orchestrateAPI.getMetrics();
                 setMetrics(updatedMetrics);
-            } catch (_) { /* polling failure is non-critical */ }
+            } catch { /* polling failure is non-critical */ }
         }, 15000);
 
         return () => clearInterval(intervalId);

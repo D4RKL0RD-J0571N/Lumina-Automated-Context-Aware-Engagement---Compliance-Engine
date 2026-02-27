@@ -69,8 +69,8 @@ const ChatWidget = () => {
                 if (Object.keys(unwrapped).length > 0) {
                     setActiveDomain(Object.keys(unwrapped)[0]);
                 }
-            } catch (error) {
-                console.error('Failed to load domains — using fallback:', error);
+            } catch {
+                console.error('Failed to load domains — using fallback:');
                 setDomains(FALLBACK_DOMAINS);
                 setActiveDomain(Object.keys(FALLBACK_DOMAINS)[0]);
             }
@@ -140,7 +140,7 @@ const ChatWidget = () => {
                         metadata: result
                     } : m
                 ));
-            } catch (_fallbackErr) {
+            } catch {
                 setMessages(prev => prev.map(m =>
                     m.id === aiMsgId ? { ...m, content: "Lumina Engine Error: Connection timed out. Please check your network or try again later.", isError: true } : m
                 ));

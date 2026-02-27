@@ -9,11 +9,24 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { orchestrateAPI } from '../services/api';
+import { APP_CONFIG, FALLBACK_DOMAINS } from '../config/constants';
+
+interface ChatMessage {
+    id: string;
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+    timestamp: Date;
+    metadata?: any;
+    isViolation?: boolean;
+    violationType?: string;
+    isBleeding?: boolean;
+    bleedEvents?: any[];
+}
 
 const ChatWidget = () => {
     const [isOpen, setIsOpen] = useState(false);
-    const [activeDomain, setActiveDomain] = useState('fishing.com');
-    const [messages, setMessages] = useState<any[]>([]);
+    const [activeDomain, setActiveDomain] = useState(Object.keys(FALLBACK_DOMAINS)[0]);
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [domains, setDomains] = useState<any>({});
@@ -32,25 +45,8 @@ const ChatWidget = () => {
             } catch (error) {
                 console.error('Failed to load domains:', error);
                 // Fallback domains for demo
-                const fallbackDomains = {
-                    'Healthcare': {
-                        persona: 'Medical Assistant',
-                        tone: 'Professional, empathetic',
-                        context: 'Medical and healthcare related queries'
-                    },
-                    'Finance': {
-                        persona: 'Financial Advisor',
-                        tone: 'Formal, trustworthy',
-                        context: 'Banking and financial services'
-                    },
-                    'Legal': {
-                        persona: 'Legal Assistant',
-                        tone: 'Precise, formal',
-                        context: 'Legal document analysis'
-                    }
-                };
-                setDomains(fallbackDomains);
-                setActiveDomain('Healthcare');
+                setDomains(FALLBACK_DOMAINS);
+                setActiveDomain(Object.keys(FALLBACK_DOMAINS)[0]);
             }
         };
 
@@ -67,14 +63,14 @@ const ChatWidget = () => {
         if (!inputValue.trim()) return;
 
         const userInput = inputValue;
-        const userMsg = { role: 'user', content: userInput };
+        const userMsg: ChatMessage = { id: Date.now().toString(), role: 'user', content: inputValue.trim(), timestamp: new Date() };
         setMessages(prev => [...prev, userMsg]);
         setInputValue('');
         setIsLoading(true);
 
-        const aiMsgId = Date.now();
+        const aiMsgId = Date.now().toString();
         // Add placeholder message for streaming
-        setMessages(prev => [...prev, { role: 'assistant', content: '', id: aiMsgId }]);
+        setMessages(prev => [...prev, { id: aiMsgId, role: 'assistant', content: '', timestamp: new Date() }]);
 
         try {
             await orchestrateAPI.orchestrateStream(
@@ -92,7 +88,8 @@ const ChatWidget = () => {
                             isViolation: !final.is_safe,
                             violationType: final.classification || 'Policy Violation',
                             isBleeding: final.is_bleeding,
-                            bleedEvents: final.bleed_events
+                            bleedEvents: final.bleed_events,
+                            metadata: final // Store all final metadata
                         } : m
                     ));
                 }
@@ -275,7 +272,7 @@ const ChatWidget = () => {
                                 </button>
                             </div>
                             <div className="flex items-center justify-between mt-3 px-1">
-                                <p className="text-[10px] text-slate-500 font-medium">Lumina Engine v1.0 • Phase 2 Optimized</p>
+                                <p className="text-[10px] text-slate-500 font-medium">{APP_CONFIG.NAME} v{APP_CONFIG.VERSION} • {APP_CONFIG.RELEASE_PHASE}</p>
                                 <div className="flex gap-2">
                                     <div className="w-2 h-2 rounded-full bg-lumina-accent/50"></div>
                                     <div className="w-2 h-2 rounded-full bg-lumina-primary/50"></div>

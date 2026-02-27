@@ -17,14 +17,12 @@ class Settings(BaseSettings):
             return v
         return v
 
-    DATABASE_URL: Optional[str] = None
     OPENAI_API_KEY: Optional[str] = None
+    LM_STUDIO_URL: Optional[str] = None
+    LM_STUDIO_API_KEY: str = "lm-studio"
     LLM_MODEL: str = "gpt-4o"
     LLM_TEMPERATURE: float = 0.7
     LLM_MAX_TOKENS: int = 500
-    REDIS_URL: Optional[str] = "redis://localhost:6379/0"
-    SUPABASE_URL: Optional[str] = None
-    SUPABASE_KEY: Optional[str] = None
 
     model_config = SettingsConfigDict(
         case_sensitive=True,

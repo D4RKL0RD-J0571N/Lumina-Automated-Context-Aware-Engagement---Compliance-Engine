@@ -72,5 +72,8 @@ jobs:
     - name: Type check
       run: npx tsc
       
+    - name: Run Frontend Tests
+      run: npm run test
+
     - name: Build
       run: npm run build

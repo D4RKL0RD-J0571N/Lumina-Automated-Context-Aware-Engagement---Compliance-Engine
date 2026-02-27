@@ -9,37 +9,22 @@ from urllib.parse import urlparse, parse_qs
 # Your LM Studio API endpoint
 LM_STUDIO_URL = os.environ.get('LM_STUDIO_URL', 'https://lashanda-nontelegraphical-ozella.ngrok-free.dev')
 
-# Domain configurations for demo
+# Domain configurations (Unified with domains.yaml)
 DOMAINS = {
-    "healthcare.com": {
-        "persona": "Medical Assistant",
-        "tone": "Professional, empathetic",
-        "domain_knowledge": "Medical and healthcare related queries with patient safety focus"
-    },
-    "finance.com": {
-        "persona": "Financial Advisor", 
-        "tone": "Formal, trustworthy",
-        "domain_knowledge": "Banking and financial services with regulatory compliance"
-    },
-    "legal.com": {
-        "persona": "Legal Assistant",
-        "tone": "Precise, formal", 
-        "domain_knowledge": "Legal document analysis and case law research"
-    },
     "fishing.com": {
         "persona": "Fishing Guide",
         "tone": "Helpful, outdoorsy, and enthusiastic",
-        "domain_knowledge": "Freshwater bass fishing and coastal saltwater techniques with sustainability focus"
+        "domain_knowledge": "Specializes in freshwater bass fishing and coastal saltwater techniques. Rules: Always emphasize sustainability, catch and release, and seasonal tackle changes. Mention local bait shops when possible."
     },
     "householdmanuals.com": {
         "persona": "DIY Repair Expert",
         "tone": "Educational, meticulous, and safety-conscious",
-        "domain_knowledge": "Home maintenance and appliance repair with safety guidelines"
+        "domain_knowledge": "Expert in home maintenance and appliance repair. Focus on safe, step-by-step troubleshooting for washing machines, HVAC units, and basic electrical fixits. Rule: Always add a 'Safety First' warning for electrical or plumbing tasks."
     },
     "localnews.org": {
         "persona": "Community Liaison",
         "tone": "Professional, objective, and community-focused",
-        "domain_knowledge": "Community events and local interest stories with neutral reporting"
+        "domain_knowledge": "Knowledgeable about community events, municipal updates, and local interest stories. Rule: Stay neutral on all political topics and only reference verified local sources."
     }
 }
 
@@ -77,7 +62,6 @@ def handler(request):
         
         elif path == '/api/v1/compliance/metrics' or path == '/compliance/metrics':
             if method == 'GET':
-                # Impressive mock compliance metrics
                 return {
                     'statusCode': 200,
                     'headers': {
@@ -85,14 +69,32 @@ def handler(request):
                         'Access-Control-Allow-Origin': '*'
                     },
                     'body': json.dumps({
-                        "compliance_rate": 99.7,
+                        "compliance_pass_rate": "99.7%",
                         "total_requests": 2847,
-                        "violations": 8,
-                        "avg_latency_ms": 156,
-                        "domains_active": 6,
-                        "ai_model_uptime": "99.9%",
-                        "data_processed_gb": 47.3,
-                        "security_score": 98.2
+                        "security_violations": 4,
+                        "legal_violations": 2,
+                        "medical_violations": 1,
+                        "ad_policy_violations": 1,
+                        "bleed_through_events": 3,
+                        "avg_latency_ms": 156.4
+                    })
+                }
+                
+        elif path == '/api/v1/compliance/violations' or path == '/compliance/violations':
+            if method == 'GET':
+                return {
+                    'statusCode': 200,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    'body': json.dumps({
+                        "violations": [
+                            { "type": "Legal", "site": "householdmanuals.com", "msg": '"Sign this document immediately"', "color": "text-lumina-warning", "time": "2m ago" },
+                            { "type": "Ad-Policy", "site": "localnews.org", "msg": 'Mentioned "Click for Free Cash"', "color": "text-lumina-danger", "time": "5m ago" },
+                            { "type": "Medical", "site": "fishing.com", "msg": 'Offered prescription advice', "color": "text-lumina-warning", "time": "12m ago" },
+                            { "type": "Security", "site": "householdmanuals.com", "msg": 'Abusive language detected', "color": "text-lumina-danger", "time": "1h ago" },
+                        ]
                     })
                 }
         
@@ -101,10 +103,10 @@ def handler(request):
                 try:
                     body = request.get_json()
                     user_input = body.get('user_input', '')
-                    domain_name = body.get('domain_name', 'healthcare.com')
+                    domain_name = body.get('domain_name', 'fishing.com')
                     
                     # Get domain config
-                    domain_config = DOMAINS.get(domain_name, DOMAINS['healthcare.com'])
+                    domain_config = DOMAINS.get(domain_name, DOMAINS['fishing.com'])
                     
                     # Call LM Studio API
                     try:
@@ -112,7 +114,7 @@ def handler(request):
                         conn = http.client.HTTPSConnection(parsed_url.netloc)
                         
                         payload = {
-                            "model": "your-model-name",  # Update with your actual model
+                            "model": os.environ.get("LLM_MODEL", "meta-llama-3"),
                             "messages": [
                                 {"role": "system", "content": f"You are {domain_config['persona']} for {domain_name}. {domain_config['domain_knowledge']} Use a {domain_config['tone']} tone."},
                                 {"role": "user", "content": user_input}
@@ -168,12 +170,6 @@ def handler(request):
                     
                     # FALLBACK: Use impressive mock responses
                     mock_responses = {
-                        "healthcare.com": f"As a Medical Assistant for healthcare.com, I can help with that. Based on current medical guidelines and patient safety protocols, I recommend consulting with your primary care physician for personalized medical advice. For general health information, I can provide evidence-based guidance on symptoms, preventive care, and wellness strategies. Always remember that this information complements but doesn't replace professional medical care.",
-                        
-                        "finance.com": f"As your Financial Advisor, I'll provide guidance based on current regulatory compliance and best practices. For investment decisions, consider your risk tolerance, time horizon, and diversification strategies. Remember that all financial advice should be tailored to your specific situation and goals. I recommend reviewing your portfolio quarterly and staying informed about market trends while maintaining a long-term perspective.",
-                        
-                        "legal.com": f"As a Legal Assistant, I can help with legal document analysis and case law research. Please note that I provide general legal information and cannot substitute for qualified legal counsel. For specific legal matters, always consult with a licensed attorney in your jurisdiction. I can assist with understanding legal terminology, document structure, and general legal concepts.",
-                        
                         "fishing.com": f"Hey there! As your Fishing Guide, I'm excited to help you with freshwater bass fishing and coastal techniques! Remember to practice catch and release for sustainability, and check local regulations for seasonal tackle changes. For bass fishing, I recommend using soft plastics in the morning and topwater lures during dusk. What specific fishing techniques or locations are you interested in exploring?",
                         
                         "householdmanuals.com": f"As your DIY Repair Expert, safety comes first! Before any electrical or plumbing work, always turn off power and water supplies. For washing machine issues, start by checking the drain pump filter and ensuring the machine is level. Remember: if you're ever unsure about a repair, it's better to consult a professional. What specific home maintenance challenge are you facing today?",

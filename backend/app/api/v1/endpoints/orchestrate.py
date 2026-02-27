@@ -17,7 +17,12 @@ import asyncio
 # Optional: Attempt to import openai for real LLM integration
 try:
     from openai import AsyncOpenAI
-    openai_client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY) if settings.OPENAI_API_KEY else None
+    if settings.LM_STUDIO_URL:
+        openai_client = AsyncOpenAI(api_key=settings.LM_STUDIO_API_KEY, base_url=settings.LM_STUDIO_URL)
+    elif settings.OPENAI_API_KEY:
+        openai_client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+    else:
+        openai_client = None
 except ImportError:
     openai_client = None
 
@@ -95,8 +100,17 @@ async def orchestrate_ai_response(request: OrchestrateRequest):
     while retry_count <= max_retries:
         if openai_client:
             try:
+                model_name = settings.LLM_MODEL
+                if settings.LM_STUDIO_URL:
+                    try:
+                        models = await openai_client.models.list()
+                        if models.data:
+                            model_name = models.data[0].id
+                    except Exception:
+                        pass
+
                 response = await openai_client.chat.completions.create(
-                    model=settings.LLM_MODEL,
+                    model=model_name,
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": safe_user_input}
@@ -172,8 +186,17 @@ async def stream_orchestrator(request: OrchestrateRequest, persona: str, system_
     
     if openai_client:
         try:
+            model_name = settings.LLM_MODEL
+            if settings.LM_STUDIO_URL:
+                try:
+                    models = await openai_client.models.list()
+                    if models.data:
+                        model_name = models.data[0].id
+                except Exception:
+                    pass
+
             stream = await openai_client.chat.completions.create(
-                model=settings.LLM_MODEL,
+                model=model_name,
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": safe_user_input}

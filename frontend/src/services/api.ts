@@ -31,8 +31,7 @@ export const orchestrateAPI = {
         return response.data;
     },
     orchestrateStream: async (data: { user_input: string; domain_name: string; rag_context?: string }, onToken: (token: string) => void, onFinal: (metadata: any) => void) => {
-        const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-        const AI_MODEL_URL = import.meta.env.VITE_AI_MODEL_URL || 'http://localhost:8000/api/v1';
+        const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
         const response = await fetch(`${API_BASE_URL}/orchestrate/`, {
             method: 'POST',
             headers: {
@@ -70,6 +69,10 @@ export const orchestrateAPI = {
     },
     scan: async (content: string) => {
         const response = await api.post('/guardrail/scan', { content });
+        return response.data;
+    },
+    getViolations: async () => {
+        const response = await api.get('/compliance/violations');
         return response.data;
     },
     getMetrics: async () => {

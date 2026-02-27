@@ -11,7 +11,7 @@ class RAGEngine:
 
     def __init__(self):
         # In a real setup, you'd initialize your vector client here (e.g., Redis, Pinecone, or Supabase)
-        self.enabled = settings.SUPABASE_URL is not None or settings.REDIS_URL is not None
+        self.enabled = True
         
         # 🔹 MOCK KNOWLEDGE BASE (For Demonstration)
         # In production, this data lives in a Vector DB.

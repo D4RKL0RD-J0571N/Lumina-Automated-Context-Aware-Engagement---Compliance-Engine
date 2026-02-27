@@ -11,28 +11,68 @@ import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import { orchestrateAPI } from './services/api';
 import MetricsChart from './components/MetricsChart';
+import { APP_CONFIG, API_ROUTES, UI_CONSTANTS } from './config/constants';
+
+interface MetricsData {
+    compliance_pass_rate: string;
+    total_requests: number;
+    security_violations: number;
+    legal_violations: number;
+    medical_violations: number;
+    ad_policy_violations: number;
+    bleed_through_events: number;
+    avg_latency_ms: number;
+}
+
+interface Violation {
+    type: string;
+    site: string;
+    msg: string;
+    color: string;
+    time: string;
+}
+
+interface DomainConfig {
+    persona: string;
+    tone: string;
+    domain_knowledge: string;
+}
 
 const Dashboard = () => {
-    const [metrics, setMetrics] = useState<any>(null);
-    const [domains, setDomains] = useState<any>(null);
+    const [metrics, setMetrics] = useState<MetricsData | null>(null);
+    const [domains, setDomains] = useState<Record<string, DomainConfig> | null>(null);
+    const [violations, setViolations] = useState<Violation[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [m, d] = await Promise.all([
+                const [m, d, v] = await Promise.all([
                     orchestrateAPI.getMetrics(),
-                    orchestrateAPI.getDomains()
+                    orchestrateAPI.getDomains(),
+                    orchestrateAPI.getViolations()
                 ]);
                 setMetrics(m);
-                setDomains(d);
+                setDomains(d.domains || d); // Handle nested format if present
+                setViolations(v.violations || []);
             } catch (err) {
-                console.error("Failed to fetch metrics", err);
+                console.error("Failed to fetch dashboard data", err);
             } finally {
                 setLoading(false);
             }
         };
+
         fetchData();
+
+        // Optional real-time polling setup to make the dashboard feel 'live'
+        const intervalId = setInterval(async () => {
+            try {
+                const updatedMetrics = await orchestrateAPI.getMetrics();
+                setMetrics(updatedMetrics);
+            } catch (e) { }
+        }, 15000); // Pool every 15s
+
+        return () => clearInterval(intervalId);
     }, []);
 
     const cardVariants: Variants = {
@@ -60,7 +100,7 @@ const Dashboard = () => {
             <header className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-4">
                 <div>
                     <h1 className="text-5xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-100 to-lumina-accent animate-pulse-glow">
-                        Lumina Engine
+                        {APP_CONFIG.NAME}
                     </h1>
                     <p className="text-slate-400 mt-3 flex items-center gap-2 text-sm md:text-base">
                         <Activity size={16} className="text-lumina-success animate-pulse" />
@@ -71,17 +111,17 @@ const Dashboard = () => {
                 </div>
                 <div className="flex gap-3">
                     <button
-                        onClick={() => window.open('/api/v1/logs', '_blank')}
+                        onClick={() => window.open(API_ROUTES.LOGS, '_blank')}
                         className="px-5 py-2.5 glass-accent text-blue-100 hover:bg-blue-500/20 transition-all flex items-center gap-2"
                     >
                         <Search size={18} />
                         Inspect Logs
                     </button>
                     <button
-                        onClick={() => alert('New Campaign feature coming soon!')}
-                        className="btn-primary"
+                        onClick={() => console.log('New Campaign Feature Clicked - To Be Implemented')}
+                        className="px-5 py-2.5 bg-lumina-primary text-white rounded-xl font-medium hover:bg-lumina-accent transition-all hover:shadow-[0_0_20px_rgba(40,112,255,0.4)]"
                     >
-                        New Campaign
+                        New Campaign +
                     </button>
                 </div>
             </header>
@@ -99,7 +139,7 @@ const Dashboard = () => {
                     <h3 className="text-3xl md:text-4xl font-bold text-lumina-success">{metrics?.compliance_pass_rate}</h3>
                     <p className="text-slate-500 text-xs mt-2 flex items-center gap-1">
                         <span className="text-lumina-success">↑</span>
-                        <span>0.2% from last hour</span>
+                        <span>{UI_CONSTANTS.DASHBOARD.COMPLIANCE_HEALTH_CHANGE}</span>
                     </p>
                     <div className="mt-4 h-1 bg-gradient-to-r from-lumina-success/20 to-transparent rounded-full"></div>
                 </motion.div>
@@ -126,7 +166,7 @@ const Dashboard = () => {
                         <p className="text-slate-400 text-sm font-medium">Risk & Quality</p>
                         <AlertTriangle className="text-lumina-warning" size={20} />
                     </div>
-                    <h3 className="text-3xl font-bold">{metrics?.security_violations + metrics?.legal_violations + metrics?.medical_violations}</h3>
+                    <h3 className="text-3xl font-bold">{(metrics?.security_violations ?? 0) + (metrics?.legal_violations ?? 0) + (metrics?.medical_violations ?? 0)}</h3>
                     <p className="text-slate-500 text-xs mt-1">Critical blocks this period</p>
                     <p className="text-amber-400/70 text-[10px] mt-1 font-semibold">{metrics?.bleed_through_events} context-leak events detected</p>
                 </motion.div>
@@ -144,10 +184,10 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Metrics Chart */}
                 <MetricsChart data={{
-                    compliance_rate: metrics?.compliance_pass_rate || 0,
-                    total_requests: metrics?.total_requests || 0,
-                    violations: (metrics?.security_violations || 0) + (metrics?.legal_violations || 0) + (metrics?.medical_violations || 0),
-                    latency: metrics?.avg_latency_ms || 0
+                    compliance_rate: metrics?.compliance_pass_rate ? parseFloat(metrics.compliance_pass_rate) : 0,
+                    total_requests: metrics?.total_requests ?? 0,
+                    violations: (metrics?.security_violations ?? 0) + (metrics?.legal_violations ?? 0) + (metrics?.medical_violations ?? 0) + (metrics?.ad_policy_violations ?? 0),
+                    latency: metrics?.avg_latency_ms ?? 0
                 }} />
 
                 {/* Domain Management */}
@@ -194,24 +234,23 @@ const Dashboard = () => {
                 <div className="glass p-6">
                     <h2 className="text-xl font-semibold mb-6">Recent Violations</h2>
                     <div className="space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
-                        {[
-                            { type: 'Legal', site: 'SeniorsInfo.org', msg: '"Sign this document immediately"', color: 'text-lumina-warning' },
-                            { type: 'Ad-Policy', site: 'LocalNews.org', msg: 'Mentioned "Click for Free Cash"', color: 'text-lumina-danger' },
-                            { type: 'Medical', site: 'Fishing.com', msg: 'Offered prescription advice', color: 'text-lumina-warning' },
-                            { type: 'Security', site: 'HouseholdManuals.com', msg: 'Abusive language detected', color: 'text-lumina-danger' },
-                        ].map((v, i) => (
+                        {violations.length > 0 ? violations.map((v, i) => (
                             <div key={i} className="flex gap-4 p-3 rounded-lg bg-white/5 border border-white/5 hover:border-white/10 transition-all cursor-pointer">
-                                <div className={`mt-1 h-2 w-2 rounded-full shrink-0 ${v.color.replace('text', 'bg')}`}></div>
+                                <div className={`mt-1 h-2 w-2 rounded-full shrink-0 ${v.color?.replace('text', 'bg') || 'bg-lumina-warning'}`}></div>
                                 <div>
                                     <div className="flex justify-between items-center w-full gap-8">
-                                        <span className={`text-xs font-bold uppercase tracking-widest ${v.color}`}>{v.type}</span>
-                                        <span className="text-[10px] text-slate-500">2m ago</span>
+                                        <span className={`text-xs font-bold uppercase tracking-widest ${v.color || 'text-lumina-warning'}`}>{v.type}</span>
+                                        <span className="text-[10px] text-slate-500">{v.time || 'recently'}</span>
                                     </div>
                                     <p className="text-sm text-slate-300 font-medium mt-1">{v.site}</p>
                                     <p className="text-xs text-slate-500 mt-0.5 truncate max-w-[180px] italic">{v.msg}</p>
                                 </div>
                             </div>
-                        ))}
+                        )) : (
+                            <div className="text-center text-slate-500 text-sm py-4">
+                                No recent violations recorded.
+                            </div>
+                        )}
                     </div>
                     <button className="w-full mt-6 py-3 rounded-xl border border-white/5 text-slate-400 text-xs font-semibold hover:bg-white/5 transition-all">
                         View Full Compliance Audit

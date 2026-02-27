@@ -29,7 +29,13 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    host: true
+    strictPort: false,
+  },
+  // @ts-ignore
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/setupTests.ts',
   },
   define: {
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')

@@ -39,5 +39,3 @@ backend/logs/audit/*.jsonl
 .idea/
 .DS_Store
 
-Enterprise-AI-CRM-Human-in-the-Loop-Orchestrator/
-

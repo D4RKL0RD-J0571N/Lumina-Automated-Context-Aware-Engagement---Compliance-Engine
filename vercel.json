@@ -1,29 +1,25 @@
 {
   "version": 2,
   "name": "lumina-engine",
-  "rewrites": [
+  "builds": [
     {
-      "source": "/api/v1/(.*)",
-      "destination": "/api/index.py"
-    },
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/index.py"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/frontend/dist/$1"
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
     }
   ],
-  "functions": {
-    "api/index.py": {
-      "maxDuration": 60,
-      "memory": 1024
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/frontend/$1"
     }
-  },
+  ],
   "env": {
-    "VITE_API_URL": "/api/v1",
-    "LM_STUDIO_URL": "https://lashanda-nontelegraphical-ozella.ngrok-free.dev",
-    "LM_STUDIO_API_KEY": "lm-studio"
+    "VITE_API_URL": "https://iilzvkqggnibzqbqshsc.supabase.co/functions/v1/lumina-api",
+    "VITE_AI_MODEL_URL": "https://lashanda-nontelegraphical-ozella.ngrok-free.dev",
+    "VITE_APP_NAME": "Lumina Engine",
+    "VITE_APP_VERSION": "1.0.0"
   }
 }

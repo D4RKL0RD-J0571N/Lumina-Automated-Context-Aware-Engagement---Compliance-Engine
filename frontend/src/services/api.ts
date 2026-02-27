@@ -2,12 +2,12 @@ import axios from 'axios';
 
 const getBaseURL = () => {
     const envUrl = import.meta.env.VITE_API_URL;
-    // If we're in production on Vercel, always prefer relative path to avoid the "Short Circuit"
-    if (envUrl && envUrl.startsWith('http') && !window.location.href.includes('localhost')) {
-        console.warn('Lumina: External VITE_API_URL detected in production! Forced bridging to /api/v1 for compliance safety.');
-        return '/api/v1';
+    // Use Supabase Edge Functions URL
+    if (envUrl && envUrl.startsWith('http')) {
+        return envUrl;
     }
-    return envUrl || 'http://localhost:8000/api/v1';
+    // Default to Supabase Edge Functions
+    return 'https://iilzvkqggnibzqbqshsc.supabase.co/functions/v1/lumina-api';
 };
 
 const api = axios.create({

@@ -112,6 +112,15 @@ const ChatWidget = () => {
                     const rejectionMsg = final.rejection_message ?? final.guardrail_result?.rejection_message ?? "Policy violation detected";
                     const classification = final.classification ?? final.guardrail_result?.classification ?? "Policy Violation";
 
+                    if (!isSafe) {
+                        // 🟢 ALIVE PROTOTYPE: Record violation to session storage
+                        const existing = JSON.parse(localStorage.getItem('lumina_session_violations') || '[]');
+                        localStorage.setItem('lumina_session_violations', JSON.stringify([
+                            { classification, domain: activeDomain, message: userInput, timestamp: new Date().toISOString() },
+                            ...existing
+                        ].slice(0, 10))); // Keep last 10
+                    }
+
                     setMessages(prev => prev.map(m =>
                         m.id === aiMsgId ? {
                             ...m,
@@ -134,11 +143,20 @@ const ChatWidget = () => {
                     domain_name: activeDomain
                 });
 
+                const isSafe = result.guardrail_result.is_safe;
+                if (!isSafe) {
+                    const existing = JSON.parse(localStorage.getItem('lumina_session_violations') || '[]');
+                    localStorage.setItem('lumina_session_violations', JSON.stringify([
+                        { classification: result.guardrail_result.classification, domain: activeDomain, message: userInput, timestamp: new Date().toISOString() },
+                        ...existing
+                    ].slice(0, 10)));
+                }
+
                 setMessages(prev => prev.map(m =>
                     m.id === aiMsgId ? {
                         ...m,
-                        content: result.guardrail_result.is_safe ? result.ai_response : result.guardrail_result.rejection_message,
-                        isViolation: !result.guardrail_result.is_safe,
+                        content: isSafe ? result.ai_response : result.guardrail_result.rejection_message,
+                        isViolation: !isSafe,
                         violationType: result.guardrail_result.classification || 'Policy Violation',
                         isBleeding: result.is_bleeding,
                         bleedEvents: result.bleed_events,

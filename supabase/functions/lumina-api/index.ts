@@ -157,15 +157,20 @@ async function handleGetDomains() {
 }
 
 async function handleGetMetrics() {
+  const now = Date.now()
+  // Deterministic jitter based on timestamp
+  const jitter = (n: number) => (Math.sin(now / n) * 2).toFixed(1)
+  const reqJitter = Math.floor(Math.sin(now / 10000) * 5)
+
   const metrics = {
-    compliance_pass_rate: "99.7%",
-    total_requests: 2847,
+    compliance_pass_rate: (99.7 + (Math.sin(now / 50000) * 0.1)).toFixed(1) + "%",
+    total_requests: 2847 + reqJitter,
     security_violations: 4,
     legal_violations: 2,
     medical_violations: 1,
     ad_policy_violations: 1,
     bleed_through_events: 3,
-    avg_latency_ms: 156.4
+    avg_latency_ms: (156.4 + parseFloat(jitter(1000))).toFixed(1)
   }
 
   return new Response(

@@ -57,9 +57,33 @@ const Dashboard = () => {
                     orchestrateAPI.getDomains(),
                     orchestrateAPI.getViolations()
                 ]);
-                setMetrics(m);
+
+                // Merge session-specific violations from localStorage
+                const sessionLogs = JSON.parse(localStorage.getItem('lumina_session_violations') || '[]');
+                const mergedMetrics = { ...m };
+
+                sessionLogs.forEach((log: any) => {
+                    const type = log.classification.toLowerCase();
+                    if (type.includes('security')) mergedMetrics.security_violations++;
+                    if (type.includes('legal')) mergedMetrics.legal_violations++;
+                    if (type.includes('medical')) mergedMetrics.medical_violations++;
+                    if (type.includes('ad_policy')) mergedMetrics.ad_policy_violations++;
+                    if (type.includes('out_of_scope')) mergedMetrics.security_violations++; // Out of scope is high-risk
+                });
+
+                setMetrics(mergedMetrics);
                 setDomains(d);
-                setViolations(v.violations || []);
+
+                // Prepend session violations to the log
+                const sessionViolations = sessionLogs.map((log: any) => ({
+                    type: log.classification.split('_').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join('-'),
+                    site: log.domain,
+                    msg: log.message.length > 40 ? log.message.slice(0, 37) + '...' : log.message,
+                    color: log.classification.includes('security') || log.classification.includes('ad') ? 'text-lumina-danger' : 'text-lumina-warning',
+                    time: "Just now"
+                }));
+
+                setViolations([...sessionViolations, ...(v.violations || [])]);
             } catch (err) {
                 console.error("Failed to fetch dashboard data — using fallback", err);
                 setMetrics(FALLBACK_METRICS);
@@ -141,7 +165,7 @@ const Dashboard = () => {
                     >
                         <div className="flex items-center gap-3">
                             <span className="px-3 py-1 bg-lumina-primary/10 border border-lumina-primary/20 rounded-full text-[10px] font-bold text-lumina-primary uppercase tracking-[0.2em]">
-                                Enterprise Shield Active
+                                Enterprise Simulation Active
                             </span>
                             <div className="w-2 h-2 rounded-full bg-lumina-success shadow-[0_0_12px_rgba(16,218,129,0.5)]"></div>
                         </div>

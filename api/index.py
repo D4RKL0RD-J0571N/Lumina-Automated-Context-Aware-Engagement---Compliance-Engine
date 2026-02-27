@@ -123,8 +123,11 @@ class handler(BaseHTTPRequestHandler):
                 clean_url = clean_url[:-3]
             
             parsed = urlparse(clean_url)
+            print(f"Lumina Debug: Calling LM Studio at {clean_url} (netloc: {parsed.netloc})")
+            
             conn_class = http.client.HTTPSConnection if parsed.scheme == 'https' else http.client.HTTPConnection
-            conn = conn_class(parsed.netloc, timeout=45) # Long timeout for ngrok
+            # Use 45s timeout because ngrok + local AI is slow
+            conn = conn_class(parsed.netloc, timeout=45) 
             
             payload = {
                 "model": "meta-llama-3",
@@ -137,17 +140,29 @@ class handler(BaseHTTPRequestHandler):
                 "temperature": 0.7
             }
             
+            api_key = os.environ.get("LM_STUDIO_API_KEY", "lm-studio")
+            # Safety check: if the user accidentally put the URL in the API Key field
+            if api_key.startswith('http'):
+                print("Lumina Warning: API Key looks like a URL. Reverting to default 'lm-studio'.")
+                api_key = "lm-studio"
+
             headers = {
                 'Content-Type': 'application/json',
-                'Authorization': f'Bearer {os.environ.get("LM_STUDIO_API_KEY", "")}',
+                'Authorization': f'Bearer {api_key}',
                 'ngrok-skip-browser-warning': 'true'
             }
             
             conn.request("POST", "/v1/chat/completions", json.dumps(payload).encode(), headers)
             response = conn.getresponse()
-            res_data = json.loads(response.read().decode())
+            
+            if response.status != 200:
+                print(f"Lumina Error: LM Studio returned {response.status}")
+                return f"Error: AI Provider returned status {response.status}. Please check your local LM Studio server."
+
+            res_body = response.read().decode()
+            res_data = json.loads(res_body)
             return res_data.get('choices', [{}])[0].get('message', {}).get('content', '')
         except Exception as e:
-            print(f"LM Studio Error: {e}")
-            return None
+            print(f"Lumina Crash: {str(e)}")
+            return f"Error: Failed to connect to AI Provider ({str(e)}). This usually means the ngrok tunnel is down or the 60s timeout was reached."
 

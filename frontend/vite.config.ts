@@ -31,7 +31,7 @@ export default defineConfig({
     port: 3000,
     strictPort: false,
   },
-  // @ts-ignore
+  // @ts-expect-error vitest config is not part of Vite's type definitions
   test: {
     globals: true,
     environment: 'jsdom',

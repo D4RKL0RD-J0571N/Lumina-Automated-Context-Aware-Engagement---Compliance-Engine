@@ -9,18 +9,43 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { orchestrateAPI } from '../services/api';
+import type { StreamFinalPayload } from '../services/api';
 import { APP_CONFIG, FALLBACK_DOMAINS } from '../config/constants';
+
+interface BleedEvent {
+    source_domain: string;
+    leaked_context: string[];
+}
+
+interface GuardrailResult {
+    is_safe: boolean;
+    classification: string;
+    rejection_message: string;
+    confidence_score?: number;
+}
+
+interface OrchestrateMetadata {
+    domain: string;
+    persona: string;
+    ai_response: string;
+    guardrail_result: GuardrailResult;
+    is_bleeding: boolean;
+    bleed_events: BleedEvent[];
+    latency_ms: number;
+    tokens_used: number;
+}
 
 interface ChatMessage {
     id: string;
     role: 'user' | 'assistant' | 'system';
     content: string;
     timestamp: Date;
-    metadata?: any;
+    metadata?: OrchestrateMetadata | StreamFinalPayload;
     isViolation?: boolean;
     violationType?: string;
     isBleeding?: boolean;
-    bleedEvents?: any[];
+    bleedEvents?: BleedEvent[];
+    isError?: boolean;
 }
 
 const ChatWidget = () => {
@@ -29,7 +54,7 @@ const ChatWidget = () => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [domains, setDomains] = useState<any>({});
+    const [domains, setDomains] = useState<Record<string, { persona: string; tone: string; domain_knowledge: string }>>({});
 
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -115,7 +140,7 @@ const ChatWidget = () => {
                         metadata: result
                     } : m
                 ));
-            } catch (fallbackErr) {
+            } catch (_fallbackErr) {
                 setMessages(prev => prev.map(m =>
                     m.id === aiMsgId ? { ...m, content: "Lumina Engine Error: Connection timed out. Please check your network or try again later.", isError: true } : m
                 ));

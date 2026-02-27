@@ -77,7 +77,7 @@ const Dashboard = () => {
             try {
                 const updatedMetrics = await orchestrateAPI.getMetrics();
                 setMetrics(updatedMetrics);
-            } catch (e) { }
+            } catch (_) { /* polling failure is non-critical */ }
         }, 15000);
 
         return () => clearInterval(intervalId);
@@ -321,7 +321,7 @@ const Dashboard = () => {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5">
-                                        {Object.entries(domains || {}).map(([name, config]: [string, any], idx) => (
+                                        {Object.entries(domains || {}).map(([name, config]: [string, DomainConfig], idx) => (
                                             <motion.tr
                                                 key={name}
                                                 initial={{ opacity: 0 }}

@@ -25,12 +25,27 @@ export interface OrchestrateResponse {
     tokens_used: number;
 }
 
+/** Flat metadata received from the SSE stream's final payload */
+export interface StreamFinalPayload {
+    is_final: boolean;
+    is_safe: boolean;
+    classification: string;
+    rejection_message: string;
+    is_bleeding: boolean;
+    bleed_events: Array<{
+        source_domain: string;
+        leaked_context: string[];
+    }>;
+    latency_ms?: number;
+    tokens_used?: number;
+}
+
 export const orchestrateAPI = {
     orchestrate: async (data: { user_input: string; domain_name: string; rag_context?: string }) => {
         const response = await api.post('/orchestrate/', data);
         return response.data;
     },
-    orchestrateStream: async (data: { user_input: string; domain_name: string; rag_context?: string }, onToken: (token: string) => void, onFinal: (metadata: any) => void) => {
+    orchestrateStream: async (data: { user_input: string; domain_name: string; rag_context?: string }, onToken: (token: string) => void, onFinal: (metadata: StreamFinalPayload) => void) => {
         const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
         const response = await fetch(`${API_BASE_URL}/orchestrate/`, {
             method: 'POST',

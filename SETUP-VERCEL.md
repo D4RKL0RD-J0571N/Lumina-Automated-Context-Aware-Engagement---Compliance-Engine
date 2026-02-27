@@ -1,100 +1,60 @@
-# 🚀 Vercel Deployment Setup
+# 🚀 Vercel Deployment Setup (Cloud-Local Hybrid)
 
-## **Step 1: Add GitHub Secrets**
+Lumina 0.4.0 uses a **Hybrid Architecture**:
+- **Frontend + API**: Hosted on Vercel (Edge & Serverless).
+- **AI Brain**: Hosted on your local PC (LM Studio) via ngrok.
 
-Go to your GitHub repository: https://github.com/D4RKL0RD-J0571N/Lumina-Automated-Context-Aware-Engagement---Compliance-Engine
+---
 
-1. Navigate to **Settings** → **Secrets and variables** → **Actions**
-2. Click **New repository secret**
-3. Add these secrets:
-
-### **Required Secrets:**
-```
-VERCEL_TOKEN: Your Vercel Personal Access Token
-```
-
-**How to get Vercel Token:**
-1. Go to https://vercel.com/account/tokens
-2. Create a new token
-3. Copy and paste as GitHub secret
+## **Step 1: Local AI Setup (On your PC)**
+1.  Open **LM Studio**.
+2.  Load your model (e.g., Llama 3).
+3.  Go to the **Local Server** tab (↔️ icon).
+4.  Set Port to `1234` and click **Start Server**.
+5.  Open your terminal and start **ngrok**:
+    ```bash
+    ngrok http 1234
+    ```
+6.  Copy the `Forwarding` URL (e.g., `https://xxxx-xxxx.ngrok-free.dev`).
 
 ---
 
 ## **Step 2: Vercel Environment Variables**
+In your Vercel Dashboard (**Settings → Environment Variables**), add:
 
-1. Go to https://vercel.com and connect your GitHub account
-2. Import your repository: `Lumina-Automated-Context-Aware-Engagement---Compliance-Engine`
-3. In Vercel dashboard, go to **Settings** → **Environment Variables**
-
-### **Add these variables:**
-```
-VITE_API_URL: https://your-backend-url.com/api
-VITE_AI_MODEL_URL: https://lashanda-nontelegraphical-ozella.ngrok-free.dev
-VITE_APP_NAME: Lumina Engine
-VITE_APP_VERSION: 1.0.0
-```
+| Key | Value |
+| :--- | :--- |
+| `LM_STUDIO_URL` | Your ngrok URL from Step 1 |
+| `LM_STUDIO_API_KEY` | `lm-studio` |
+| `VITE_API_URL` | `/api/v1` |
+| `VITE_APP_NAME` | `Lumina Engine` |
 
 ---
 
-## **Step 3: Trigger Deployment**
+## **Step 3: Deployment**
+Push your changes to GitHub. Vercel will automatically build and deploy.
 
-### **Automatic Deployment:**
-GitHub Actions will automatically trigger when you push to master/main branch.
-
-### **Manual Deployment:**
+### **Manual Build (Optional)**
+If you want to build locally first:
 ```bash
-# If you want to deploy manually
-vercel --prod
+npm run build
 ```
 
 ---
 
-## **Step 4: Verify Deployment**
-
-Once deployed, your app will be available at:
-- **Production**: `https://lumina-engine.vercel.app` (or your custom domain)
-- **Preview**: `https://your-branch-name-lumina-engine.vercel.app`
-
----
-
-## **🔧 Troubleshooting**
-
-### **GitHub Actions Not Triggering:**
-1. Check that secrets are added correctly
-2. Verify the workflow file is in `.github/workflows/deploy.yml`
-3. Check Actions tab in GitHub for error logs
-
-### **Build Failures:**
-1. Check that `package.json` is in `frontend/` directory
-2. Verify `npm run build` works locally
-3. Check Vercel environment variables
-
-### **Runtime Issues:**
-1. Verify environment variables are set in Vercel
-2. Check browser console for API connection errors
-3. Ensure backend is accessible if needed
+## **🔧 Troubleshooting 404s/Timeouts**
+1.  **"Status: 404"**: Ensure your `vercel.json` has the correct rewrites for `/api/v1/`.
+2.  **"Failed to reach AI"**: 
+    - Check if ngrok is still running.
+    - Test the diagnostic ping: `https://your-app.vercel.app/api/v1/ping`.
+3.  **Deployment Conflicts**: If you see `"functions" cannot be used with "builds"`, use the root `package.json` for builds and only use `functions` for timeouts in `vercel.json`.
 
 ---
 
-## **🎯 Expected Results**
-
-✅ **Automatic Deployment**: Push to GitHub → Auto-deploy to Vercel
-✅ **Live Demo**: Fully functional UI with fallback domains
-✅ **Production Ready**: Optimized builds and error handling
-✅ **Recruiter Ready**: Professional presentation
+## **📊 Verification Check**
+✅ **Ping Test**: `/api/v1/ping` returns `{"status": "online"}`.
+✅ **Domain List**: `/api/v1/domains/` returns the business personas.
+✅ **Chat**: Sending a message triggers the ngrok tunnel and returns AI text.
 
 ---
-
-## **📊 What Recruiters Will See**
-
-- **Live Demo**: https://lumina-engine.vercel.app
-- **GitHub Actions**: Automated CI/CD pipeline
-- **Professional UI**: Glassmorphism design with animations
-- **Error Resilience**: Graceful fallbacks and user feedback
-- **Documentation**: Comprehensive setup guides
-
----
-
-**🎉 Your Lumina Engine is now ready for production deployment!**
-
-*The GitHub Actions workflow will automatically deploy to Vercel on every push to master branch.*
+*Last Updated: 2026-02-27 - Hybrid Architecture Refactor*

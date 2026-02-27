@@ -14,18 +14,26 @@ Lumina uses a layered approach to prompt engineering to ensure safety and person
 
 ```mermaid
 graph TD
-    User([User Input]) --> Orchestrator
-    subgraph Engine ["Lumina Engine"]
-        Orchestrator --> L1[L1: Universal Safety]
-        Orchestrator --> L2[L2: Domain Registry]
-        Orchestrator --> L3[L3: RAG Engine]
-        L1 & L2 & L3 --> FinalPrompt[Final System Prompt]
+    User([User Input]) --> Frontend[React UI]
+    Frontend --> Vercel[Vercel Serverless /Flask]
+    subgraph Engine ["Lumina Cloud-Local Bridge"]
+        Vercel --> Ngrok[Ngrok Tunnel]
+        Ngrok --> LocalAI[Local LM Studio / v1]
+        LocalAI --> L1[L1: Universal Safety]
+        LocalAI --> L2[L2: Domain Registry]
+        LocalAI --> L3[L3: RAGEngine]
     end
-    FinalPrompt --> LLM[Live LLM / OpenAI]
-    LLM --> Stream[Token Stream]
-    Stream --> Interceptor[Compliance & Bleed-through Check]
-    Interceptor --> UI([Chat UI])
+    LocalAI --> Stream[Token Stream]
+    Stream --> Interceptor[Compliance Check]
+    Interceptor --> Frontend
 ```
+
+## 3. Hybrid Orchestration Layer
+Lumina 0.4.0 introduces a **Hybrid Cloud-Local Bridge**. This allows the high-performance React frontend and Flask API to live on **Vercel**, while the heavy Large Language Models run on **local hardware** (via LM Studio). 
+
+*   **Security**: ngrok provides a secure tunnel with `ngrok-skip-browser-warning` headers to bypass intermediate pages.
+*   **Resilience**: The backend handles a 60s timeout to accommodate local inference speeds.
+*   **Portability**: The system can be switched to full-cloud (OpenAI/Anthropic) by simply updating the `LM_STUDIO_URL` environment variable.
 
 ## 3. Core Components
 

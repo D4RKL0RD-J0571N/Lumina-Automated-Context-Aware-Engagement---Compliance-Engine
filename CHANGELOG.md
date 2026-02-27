@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2026-02-27
+### Added
+- **Vercel Hybrid Bridge**: Enabled cloud deployment connecting to local LM Studio via ngrok.
+- **Flask Serverless Backend**: Robust Python backend for Vercel production.
+- **Extended Timeout (60s)**: Support for slow local AI generation through ngrok tunnels.
+- **ID Collision Fix**: Unique prefixes for chat message IDs (`user-*`, `ai-*`).
+- **Diagnostic "Ping" Endpoint**: `/api/v1/ping` for connectivity verification.
+
 ## [0.3.0] - 2026-02-26
 ### Added
 - **Phase 6: Engineering Excellence**: Integrated GitHub Actions CI/CD.

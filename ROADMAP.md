@@ -7,6 +7,8 @@
 - [x] **Prometheus Observability** | Observabilidad con Prometheus.
 - [x] **Hardened Security & Audit Trails** | Seguridad reforzada y pistas de auditoría.
 - [x] **CI/CD & QA Framework** | Automatización de CI/CD y pruebas.
+- [x] **Vercel Hybrid Bridge** | Puente híbrido Vercel-Local AI.
+- [x] **Flask Serverless Migration** | Migración a backend Serverless con Flask.
 
 ---
 

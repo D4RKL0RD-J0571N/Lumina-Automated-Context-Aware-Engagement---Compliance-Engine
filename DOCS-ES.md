@@ -14,18 +14,26 @@ Lumina utiliza un enfoque por capas para la ingeniería de prompts con el fin de
 
 ```mermaid
 graph TD
-    User([Entrada del Usuario]) --> Orchestrator
-    subgraph Engine ["Motor Lumina"]
-        Orchestrator --> L1[L1: Seguridad Universal]
-        Orchestrator --> L2[L2: Registro de Dominio]
-        Orchestrator --> L3[L3: Motor RAG]
-        L1 & L2 & L3 --> FinalPrompt[Prompt de Sistema Final]
+    User([Entrada Usuario]) --> Frontend[React UI]
+    Frontend --> Vercel[Vercel Serverless /Flask]
+    subgraph Engine ["Lumina Cloud-Local Bridge"]
+        Vercel --> Ngrok[Túnel Ngrok]
+        Ngrok --> LocalAI[LM Studio Local / v1]
+        LocalAI --> L1[L1: Seguridad Universal]
+        LocalAI --> L2[L2: Registro Dominio]
+        LocalAI --> L3[L3: Motor RAG]
     end
-    FinalPrompt --> LLM[LLM en Vivo / OpenAI]
-    LLM --> Stream[Flujo de Tokens]
-    Stream --> Interceptor[Validación de Cumplimiento]
-    Interceptor --> UI([Interfaz de Chat])
+    LocalAI --> Stream[Flujo Tokens]
+    Stream --> Interceptor[Validación Cumplimiento]
+    Interceptor --> Frontend
 ```
+
+## 3. Capa de Orquestación Híbrida
+Lumina 0.4.0 introduce un **Puente Híbrido Nube-Local**. Esto permite que el frontend de React de alto rendimiento y la API de Flask vivan en **Vercel**, mientras que los LLMs pesados se ejecutan en **hardware local** (vía LM Studio).
+
+*   **Seguridad**: ngrok proporciona un túnel seguro con cabeceras `ngrok-skip-browser-warning`.
+*   **Resiliencia**: El backend maneja un tiempo de espera de 60 segundos.
+*   **Portabilidad**: El sistema puede cambiarse a la nube completa actualizando la variable `LM_STUDIO_URL`.
 
 ## 3. Componentes Principales
 

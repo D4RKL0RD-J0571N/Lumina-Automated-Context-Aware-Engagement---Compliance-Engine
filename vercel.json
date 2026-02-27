@@ -1,11 +1,5 @@
 {
   "version": 2,
-  "name": "lumina-engine",
-  "functions": {
-    "api/index.py": {
-      "maxDuration": 60
-    }
-  },
   "rewrites": [
     {
       "source": "/api/v1/(.*)",
@@ -17,13 +11,17 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/frontend/dist/$1"
+      "destination": "/index.html"
     }
   ],
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  },
   "env": {
     "VITE_API_URL": "/api/v1",
-    "VITE_AI_MODEL_URL": "https://lashanda-nontelegraphical-ozella.ngrok-free.dev",
-    "LM_STUDIO_URL": "https://lashanda-nontelegraphical-ozella.ngrok-free.dev",
     "LM_STUDIO_API_KEY": "lm-studio"
   }
 }

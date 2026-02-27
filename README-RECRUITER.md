@@ -11,8 +11,9 @@ The Lumina Engine is a **complete, production-ready AI compliance system** that 
 ## 🎯 **What This System Demonstrates**
 
 ### **Technical Architecture**
-- **Microservices Design**: FastAPI backend + React frontend
-- **Real-time Communication**: Server-Sent Events for streaming AI responses  
+- **Microservices Design**: FastAPI backend (Local) / Flask backend (Vercel) + React frontend
+- **Hybrid Bridge Architecture**: Securely connecting Cloud (Vercel) to Local AI (LM Studio) via ngrok.
+- **Real-time Communication**: Server-Sent Events (SSE) for streaming AI responses  
 - **Compliance Engine**: Multi-layer guardrail system with PII detection
 - **Performance Optimization**: Code splitting, lazy loading, Core Web Vitals
 - **Production Deployment**: Vercel-ready with CI/CD pipeline

@@ -107,12 +107,16 @@ const ChatWidget = () => {
                     ));
                 },
                 (final) => {
+                    const isSafe = final.is_safe ?? final.guardrail_result?.is_safe ?? true;
+                    const rejectionMsg = final.rejection_message ?? final.guardrail_result?.rejection_message ?? "Policy violation detected";
+                    const classification = final.classification ?? final.guardrail_result?.classification ?? "Policy Violation";
+
                     setMessages(prev => prev.map(m =>
                         m.id === aiMsgId ? {
                             ...m,
-                            content: final.is_safe ? m.content : `ERROR [Compliance]: ${final.rejection_message}`,
-                            isViolation: !final.is_safe,
-                            violationType: final.classification || 'Policy Violation',
+                            content: isSafe ? m.content : `ERROR [Compliance]: ${rejectionMsg}`,
+                            isViolation: !isSafe,
+                            violationType: classification,
                             isBleeding: final.is_bleeding,
                             bleedEvents: final.bleed_events,
                             metadata: final // Store all final metadata

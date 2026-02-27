@@ -253,6 +253,11 @@ async function handleOrchestrate(req: Request) {
       domain: domain_name,
       persona: domainConfig.persona,
       ai_response,
+      // Flat keys for frontend streaming compatibility
+      is_safe: true,
+      classification: "safe",
+      rejection_message: "",
+      // Nested object for traditional API compatibility
       guardrail_result: {
         is_safe: true,
         classification: "safe",

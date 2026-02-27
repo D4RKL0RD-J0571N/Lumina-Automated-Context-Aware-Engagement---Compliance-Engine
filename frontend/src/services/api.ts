@@ -48,6 +48,11 @@ export interface StreamFinalPayload {
         source_domain: string;
         leaked_context: string[];
     }>;
+    guardrail_result?: {
+        is_safe: boolean;
+        classification: string;
+        rejection_message: string;
+    };
     latency_ms?: number;
     tokens_used?: number;
 }

@@ -1,7 +1,7 @@
 from http.server import BaseHTTPRequestHandler
 import os
-import http.client
 import json
+import requests
 from urllib.parse import urlparse
 
 # Your LM Studio API endpoint
@@ -64,50 +64,53 @@ class handler(BaseHTTPRequestHandler):
             self.send_error(404, "Endpoint not found")
 
     def do_POST(self):
-        content_length = int(self.headers.get('Content-Length', 0))
-        body = json.loads(self.rfile.read(content_length)) if content_length > 0 else {}
-        
-        path = self.path
-        normalized = path.replace('/api/v1', '').replace('/api', '').split('?')[0]
-
-        if normalized in ['/orchestrate', '/orchestrate/']:
-            user_input = body.get('user_input', '')
-            domain_name = body.get('domain_name', 'fishing.com')
-            is_streaming = body.get('stream', False)
+        try:
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = json.loads(self.rfile.read(content_length)) if content_length > 0 else {}
             
-            domain_config = DOMAINS.get(domain_name, DOMAINS['fishing.com'])
-            ai_response = self.call_lm_studio(user_input, domain_name, domain_config)
-            
-            result_payload = {
-                "domain": domain_name,
-                "persona": domain_config['persona'],
-                "ai_response": ai_response,
-                "guardrail_result": {"is_safe": True, "classification": "safe", "rejection_message": ""},
-                "is_bleeding": False,
-                "bleed_events": [],
-                "latency_ms": 145,
-                "tokens_used": 187,
-                "source": "lm_studio" if ai_response else "fallback",
-                "is_final": True
-            }
+            path = self.path
+            normalized = path.replace('/api/v1', '').replace('/api', '').split('?')[0]
 
-            if is_streaming:
-                self.send_response(200)
-                self.send_header('Content-Type', 'text/event-stream')
-                self.send_header('Cache-Control', 'no-cache')
-                self.send_header('Connection', 'keep-alive')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
+            if normalized in ['/orchestrate', '/orchestrate/']:
+                user_input = body.get('user_input', '')
+                domain_name = body.get('domain_name', 'fishing.com')
+                is_streaming = body.get('stream', False)
                 
-                # Send pseudo-stream
-                chunk1 = f"data: {json.dumps({'token': ai_response})}\n\n"
-                chunk2 = f"data: {json.dumps(result_payload)}\n\n"
-                self.wfile.write(chunk1.encode())
-                self.wfile.write(chunk2.encode())
+                domain_config = DOMAINS.get(domain_name, DOMAINS['fishing.com'])
+                ai_response = self.call_lm_studio(user_input, domain_name, domain_config)
+                
+                result_payload = {
+                    "domain": domain_name,
+                    "persona": domain_config['persona'],
+                    "ai_response": ai_response,
+                    "guardrail_result": {"is_safe": True, "classification": "safe", "rejection_message": ""},
+                    "is_bleeding": False,
+                    "bleed_events": [],
+                    "latency_ms": 145,
+                    "tokens_used": 187,
+                    "source": "lm_studio" if ai_response and not ai_response.startswith('Error') else "fallback",
+                    "is_final": True
+                }
+
+                if is_streaming:
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'text/event-stream')
+                    self.send_header('Cache-Control', 'no-cache')
+                    self.send_header('Connection', 'keep-alive')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    
+                    # Send pseudo-stream
+                    chunk1 = f"data: {json.dumps({'token': ai_response})}\n\n"
+                    chunk2 = f"data: {json.dumps(result_payload)}\n\n"
+                    self.wfile.write(chunk1.encode())
+                    self.wfile.write(chunk2.encode())
+                else:
+                    self.send_json(result_payload)
             else:
-                self.send_json(result_payload)
-        else:
-            self.send_error(404, "Endpoint not found")
+                self.send_error(404, "Endpoint not found")
+        except Exception as e:
+            self.send_error(500, str(e))
 
     def send_json(self, data):
         self.send_response(200)
@@ -118,17 +121,18 @@ class handler(BaseHTTPRequestHandler):
 
     def call_lm_studio(self, user_input, domain_name, domain_config):
         try:
-            clean_url = LM_STUDIO_URL.rstrip('/')
-            if clean_url.endswith('/v1'):
-                clean_url = clean_url[:-3]
+            # Clean up the URL
+            url = LM_STUDIO_URL.rstrip('/')
+            if not url.endswith('/v1'):
+                url = f"{url}/v1"
             
-            parsed = urlparse(clean_url)
-            print(f"Lumina Debug: Calling LM Studio at {clean_url} (netloc: {parsed.netloc})")
+            endpoint = f"{url}/chat/completions"
+            print(f"Lumina Debug: Pointing to {endpoint}")
             
-            conn_class = http.client.HTTPSConnection if parsed.scheme == 'https' else http.client.HTTPConnection
-            # Use 45s timeout because ngrok + local AI is slow
-            conn = conn_class(parsed.netloc, timeout=45) 
-            
+            api_key = os.environ.get("LM_STUDIO_API_KEY", "lm-studio")
+            if api_key.startswith('http'):
+                api_key = "lm-studio"
+
             payload = {
                 "model": "meta-llama-3",
                 "messages": [
@@ -140,29 +144,22 @@ class handler(BaseHTTPRequestHandler):
                 "temperature": 0.7
             }
             
-            api_key = os.environ.get("LM_STUDIO_API_KEY", "lm-studio")
-            # Safety check: if the user accidentally put the URL in the API Key field
-            if api_key.startswith('http'):
-                print("Lumina Warning: API Key looks like a URL. Reverting to default 'lm-studio'.")
-                api_key = "lm-studio"
-
             headers = {
                 'Content-Type': 'application/json',
                 'Authorization': f'Bearer {api_key}',
                 'ngrok-skip-browser-warning': 'true'
             }
             
-            conn.request("POST", "/v1/chat/completions", json.dumps(payload).encode(), headers)
-            response = conn.getresponse()
+            # Use requests for better SSL and timeout handling
+            response = requests.post(endpoint, json=payload, headers=headers, timeout=50)
             
-            if response.status != 200:
-                print(f"Lumina Error: LM Studio returned {response.status}")
-                return f"Error: AI Provider returned status {response.status}. Please check your local LM Studio server."
+            if response.status_code != 200:
+                print(f"Lumina Error: Status {response.status_code} - {response.text}")
+                return f"Error: Provider status {response.status_code}. Details: {response.text[:100]}"
 
-            res_body = response.read().decode()
-            res_data = json.loads(res_body)
+            res_data = response.json()
             return res_data.get('choices', [{}])[0].get('message', {}).get('content', '')
+            
         except Exception as e:
             print(f"Lumina Crash: {str(e)}")
-            return f"Error: Failed to connect to AI Provider ({str(e)}). This usually means the ngrok tunnel is down or the 60s timeout was reached."
-
+            return f"Error: Failed to reach AI. Detail: {str(e)[:100]}"

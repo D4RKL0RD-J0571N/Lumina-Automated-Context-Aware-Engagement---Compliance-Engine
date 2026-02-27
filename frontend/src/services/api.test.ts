@@ -47,7 +47,7 @@ describe('API URL Wiring', () => {
         it('production base + relative path should form correct full URL', () => {
             const base = 'https://iilzvkqggnibzqbqshsc.supabase.co/functions/v1/lumina-api';
 
-            Object.entries(ENDPOINT_PATHS).forEach(([_name, path]) => {
+            Object.entries(ENDPOINT_PATHS).forEach(([, path]) => {
                 const fullUrl = base + path;
                 // Must NOT double-up with /api/v1 between lumina-api and the endpoint
                 expect(fullUrl).not.toContain('lumina-api/api/v1');

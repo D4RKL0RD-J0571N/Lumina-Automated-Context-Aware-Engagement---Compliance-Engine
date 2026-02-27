@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.3] - 2026-02-27
+
+### **Security & Compliance (SSE Sentinel Hardening)**
+- **Deterministic Rejection Delivery**: Added `is_final: true` to the Edge Function's guardrail rejection payload, ensuring rejections are never "swallowed" by the streaming parser.
+- **Parser Defense-in-Depth**: Hardened the frontend `orchestrateStream` parser to recognize `classification` events as final even if metadata is missing.
+- **Edge Deployment**: Successfully redeployed the hardened Sentinel logic (Regex-based scanning + Forbidden General Topics) to Supabase.
+
 ## [1.3.2] - 2026-02-27
 
 ### **UI & Presentation (Premium Polish)**

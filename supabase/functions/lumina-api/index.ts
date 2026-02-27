@@ -213,7 +213,8 @@ async function handleOrchestrate(req: Request) {
         guardrail_result: inputGuardrail,
         is_bleeding: false,
         latency_ms: 10,
-        source: "guardrail_pre_scan"
+        source: "guardrail_pre_scan",
+        is_final: true
       }
 
       if (stream) {

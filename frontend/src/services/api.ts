@@ -89,7 +89,7 @@ export const orchestrateAPI = {
                         const payload = JSON.parse(line.slice(6));
                         if (payload.token) {
                             onToken(payload.token);
-                        } else if (payload.is_final) {
+                        } else if (payload.is_final || payload.classification) {
                             onFinal(payload);
                         }
                     } catch (e) {

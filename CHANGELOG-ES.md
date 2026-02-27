@@ -4,6 +4,13 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 ## [Sin publicar]
 
+## [1.3.3] - 2026-02-27
+
+### **Seguridad y Cumplimiento (Refuerzo de Sentinel SSE)**
+- **Entrega de Rechazo Determinista**: Se añadió `is_final: true` a la carga útil de rechazo del guardrail en la Edge Function, asegurando que los rechazos nunca sean "tragados" por el analizador de streaming.
+- **Defensa en Profundidad del Analizador**: Se reforzó el analizador `orchestrateStream` del frontend para reconocer eventos de `classification` como finales, incluso si faltan metadatos.
+- **Despliegue en Edge**: Despliegue exitoso de la lógica endurecida de Sentinel (escaneo basado en Regex + Temas Generales Prohibidos) en Supabase.
+
 ## [1.3.2] - 2026-02-27
 
 ### **UI y Presentación (Pulido Premium)**

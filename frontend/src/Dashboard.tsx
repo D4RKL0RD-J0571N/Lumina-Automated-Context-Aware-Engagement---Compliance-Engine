@@ -42,6 +42,13 @@ interface DomainConfig {
     domain_knowledge: string;
 }
 
+interface SessionLog {
+    classification: string;
+    domain: string;
+    message: string;
+    timestamp: string;
+}
+
 const Dashboard = () => {
     const [metrics, setMetrics] = useState<MetricsData | null>(null);
     const [domains, setDomains] = useState<Record<string, DomainConfig> | null>(null);
@@ -62,7 +69,7 @@ const Dashboard = () => {
                 const sessionLogs = JSON.parse(localStorage.getItem('lumina_session_violations') || '[]');
                 const mergedMetrics = { ...m };
 
-                sessionLogs.forEach((log: any) => {
+                sessionLogs.forEach((log: SessionLog) => {
                     const type = log.classification.toLowerCase();
                     if (type.includes('security')) mergedMetrics.security_violations++;
                     if (type.includes('legal')) mergedMetrics.legal_violations++;
@@ -75,7 +82,7 @@ const Dashboard = () => {
                 setDomains(d);
 
                 // Prepend session violations to the log
-                const sessionViolations = sessionLogs.map((log: any) => ({
+                const sessionViolations = sessionLogs.map((log: SessionLog) => ({
                     type: log.classification.split('_').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join('-'),
                     site: log.domain,
                     msg: log.message.length > 40 ? log.message.slice(0, 37) + '...' : log.message,

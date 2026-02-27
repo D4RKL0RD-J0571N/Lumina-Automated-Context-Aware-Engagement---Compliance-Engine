@@ -1,3 +1,4 @@
+import re
 from typing import List, Optional, Tuple
 from app.schemas.guardrail import GuardrailClassification, GuardrailResult
 
@@ -52,69 +53,80 @@ class GuardrailEngine:
         """
         msg_lower = message.lower()
         
+        def find_trigger(keywords: List[str]) -> Optional[str]:
+            for kw in keywords:
+                # Use \b for word boundaries to prevent partial matches (e.g., "broadcast" catching "cast")
+                if re.search(rf"\b{re.escape(kw.lower())}\b", msg_lower):
+                    return kw
+            return None
+
         # 1. Security Check (Highest Priority)
-        security_triggers = [kw for kw in cls.SECURITY_VIOLATION_KEYWORDS if kw in msg_lower]
-        if security_triggers:
+        security_trigger = find_trigger(cls.SECURITY_VIOLATION_KEYWORDS)
+        if security_trigger:
             return GuardrailResult(
                 classification=GuardrailClassification.SECURITY_VIOLATION,
-                triggered_keywords=security_triggers,
+                triggered_keywords=[security_trigger],
                 is_safe=False,
                 rejection_message="This output contains prohibited security-sensitive content."
             )
         
         # 2. General Knowledge / Out-of-Scope (Zero-Echo)
-        general_triggers = [kw for kw in cls.FORBIDDEN_GENERAL_TOPICS if kw in msg_lower]
-        if general_triggers:
+        general_trigger = find_trigger(cls.FORBIDDEN_GENERAL_TOPICS)
+        if general_trigger:
              return GuardrailResult(
                 classification=GuardrailClassification.OUT_OF_SCOPE,
-                triggered_keywords=general_triggers,
+                triggered_keywords=[general_trigger],
                 is_safe=False,
-                rejection_message=f"I am strictly authorized to assist with {domain_context or 'my assigned domain'}. General knowledge topics like '{general_triggers[0]}' are outside my operational scope."
+                rejection_message=f"I am strictly authorized to assist with {domain_context or 'my assigned domain'}. General knowledge topics like '{general_trigger}' are outside my operational scope."
             )
         
         # 3. Medical Check (High Risk)
-        medical_triggers = [kw for kw in cls.MEDICAL_KEYWORDS if kw in msg_lower]
-        if medical_triggers:
+        medical_trigger = find_trigger(cls.MEDICAL_KEYWORDS)
+        if medical_trigger:
             return GuardrailResult(
                 classification=GuardrailClassification.MEDICAL_VIOLATION,
-                triggered_keywords=medical_triggers,
+                triggered_keywords=[medical_trigger],
                 is_safe=False,
                 rejection_message="I cannot provide medical advice or handle medical emergencies."
             )
 
-        # 3. Legal Check (Risk Mitigation)
-        legal_triggers = [kw for kw in cls.LEGAL_KEYWORDS if kw in msg_lower]
-        if legal_triggers:
+        # 4. Legal Check (Risk Mitigation)
+        legal_trigger = find_trigger(cls.LEGAL_KEYWORDS)
+        if legal_trigger:
             return GuardrailResult(
                 classification=GuardrailClassification.LEGAL_VIOLATION,
-                triggered_keywords=legal_triggers,
+                triggered_keywords=[legal_trigger],
                 is_safe=False,
                 rejection_message="I am not authorized to provide legal advice or discuss pending litigation."
             )
 
-        # 4. Domain-Lock Check (Out of Scope)
-        # If we have a domain context, ensure the message doesn't belong to another domain's lexicon
+        # 5. Domain-Lock Check (Out of Scope)
         if domain_context:
             domain_context = domain_context.lower()
             for domain, keywords in cls.DOMAIN_SIGNATURES.items():
                 if domain == domain_context:
                     continue
-                # If the input contains strong signatures of OTHER domains
-                other_triggers = [kw for kw in keywords if kw in msg_lower]
-                if other_triggers and len(other_triggers) >= 1: # Sensitivity threshold
+                
+                # Count matches for sensitivity threshold
+                matches = []
+                for kw in keywords:
+                    if re.search(rf"\b{re.escape(kw.lower())}\b", msg_lower):
+                        matches.append(kw)
+                
+                if len(matches) >= 2: # Sensitivity threshold
                     return GuardrailResult(
                         classification=GuardrailClassification.OUT_OF_SCOPE,
-                        triggered_keywords=other_triggers,
+                        triggered_keywords=matches,
                         is_safe=False,
                         rejection_message=f"I am strictly configured for {domain_context}. For information about {domain}, please switch contexts."
                     )
 
-        # 5. Ad-Policy / Monetization Check
-        ad_triggers = [kw for kw in cls.AD_POLICY_KEYWORDS if kw in msg_lower]
-        if ad_triggers:
+        # 6. Ad-Policy / Monetization Check
+        ad_trigger = find_trigger(cls.AD_POLICY_KEYWORDS)
+        if ad_trigger:
             return GuardrailResult(
                 classification=GuardrailClassification.AD_POLICY_VIOLATION,
-                triggered_keywords=ad_triggers,
+                triggered_keywords=[ad_trigger],
                 is_safe=False,
                 rejection_message="This content violates our advertising and monetization safety guidelines."
             )

@@ -2,7 +2,19 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
-## [1.3.0] - 2026-02-27
+## [Sin publicar]
+
+## [1.3.2] - 2026-02-27
+
+### **UI y Presentación (Pulido Premium)**
+- **Soporte de Markdown Enriquecido**: Integración de `ReactMarkdown` con `remark-gfm` para respuestas de IA profesionales y estructuradas.
+- **Tipografía Premium**: Se añadió el sistema de diseño `.markdown-content` con bloques de código glasmórficos, marcadores de lista acentuados y legibilidad mejorada.
+
+### **Seguridad y Cumplimiento (Sentinel con Regex)**
+- **Coincidencia de Palabras Completas**: Se actualizaron los escáneres tanto en Python como en TypeScript para usar límites de palabras con Regex (`\b... \b`). Esto evita falsos positivos y asegura el bloqueo determinista de temas como 'cars' sin capturar coincidencias parciales.
+- **Refuerzo Zero-Echo**: Se mejoró la fiabilidad del rechazo previo al escaneo para consultas de conocimiento general fuera de alcance.
+
+## [1.3.1] - 2026-02-27
 
 ### **Seguridad y Cumplimiento (Fase 7: Endurecimiento de Sentinel)**
 - **Ejecución Zero-Echo**: Implementación de pre-escaneo determinista de entrada para bloquear prompts violatorios o fuera de alcance *antes* de que lleguen al LLM.

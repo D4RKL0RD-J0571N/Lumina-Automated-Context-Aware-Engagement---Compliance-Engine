@@ -367,12 +367,21 @@ class GuardrailEngine {
   static scan(content: string, domainContext?: string) {
     const msgLower = content.toLowerCase()
 
-    if (this.SECURITY_KEYWORDS.some(kw => msgLower.includes(kw))) {
-      return { is_safe: false, classification: 'security_violation', rejection_message: 'Content flagged for security violation' }
+    // Helper for whole-word matching
+    const matchesKeyword = (keywords: string[]) => {
+      return keywords.find(kw => {
+        const regex = new RegExp(`\\b${kw}\\b`, 'i');
+        return regex.test(msgLower);
+      });
+    };
+
+    const securityTrigger = matchesKeyword(this.SECURITY_KEYWORDS);
+    if (securityTrigger) {
+      return { is_safe: false, classification: 'security_violation', rejection_message: `Content flagged for security violation: [${securityTrigger}]` }
     }
 
     // 🛡️ Zero-Echo: General Knowledge Block
-    const generalTrigger = this.FORBIDDEN_GENERAL_TOPICS.find(kw => msgLower.includes(kw))
+    const generalTrigger = matchesKeyword(this.FORBIDDEN_GENERAL_TOPICS);
     if (generalTrigger) {
       return {
         is_safe: false,
@@ -381,13 +390,18 @@ class GuardrailEngine {
       }
     }
 
-    if (this.LEGAL_KEYWORDS.some(kw => msgLower.includes(kw))) {
+    const legalTrigger = matchesKeyword(this.LEGAL_KEYWORDS);
+    if (legalTrigger) {
       return { is_safe: false, classification: 'legal_violation', rejection_message: 'I am not authorized to provide legal advice.' }
     }
-    if (this.MEDICAL_KEYWORDS.some(kw => msgLower.includes(kw))) {
+
+    const medicalTrigger = matchesKeyword(this.MEDICAL_KEYWORDS);
+    if (medicalTrigger) {
       return { is_safe: false, classification: 'medical_violation', rejection_message: 'I cannot provide medical advice or handle medical emergencies.' }
     }
-    if (this.AD_POLICY_KEYWORDS.some(kw => msgLower.includes(kw))) {
+
+    const adTrigger = matchesKeyword(this.AD_POLICY_KEYWORDS);
+    if (adTrigger) {
       return { is_safe: false, classification: 'ad_policy_violation', rejection_message: 'Content violates advertising safety guidelines.' }
     }
 
@@ -395,8 +409,14 @@ class GuardrailEngine {
       const normalizedDomain = domainContext.toLowerCase()
       for (const [domain, keywords] of Object.entries(this.DOMAIN_SIGNATURES)) {
         if (domain === normalizedDomain) continue
-        const triggers = keywords.filter(kw => msgLower.includes(kw))
-        if (triggers.length >= 2) { // Sensitivity threshold
+
+        // Count matches for domain bleed-through
+        const matches = keywords.filter(kw => {
+          const regex = new RegExp(`\\b${kw}\\b`, 'i');
+          return regex.test(msgLower);
+        });
+
+        if (matches.length >= 2) { // Sensitivity threshold
           return {
             is_safe: false,
             classification: 'out_of_scope',

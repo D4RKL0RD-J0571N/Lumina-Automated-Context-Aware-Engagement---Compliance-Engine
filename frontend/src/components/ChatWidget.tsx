@@ -9,6 +9,8 @@ import {
     Lock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { orchestrateAPI } from '../services/api';
 import type { StreamFinalPayload } from '../services/api';
 import { APP_CONFIG, FALLBACK_DOMAINS } from '../config/constants';
@@ -281,9 +283,11 @@ const ChatWidget = () => {
                                                 </div>
                                             )}
 
-                                            <p className={msg.isViolation ? "font-mono text-xs italic opacity-90" : ""}>
-                                                {msg.content}
-                                            </p>
+                                            <div className={`markdown-content ${msg.isViolation ? "font-mono text-xs italic opacity-90" : ""}`}>
+                                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                                    {msg.content}
+                                                </ReactMarkdown>
+                                            </div>
                                         </div>
                                         <span className="text-[9px] text-slate-600 font-bold uppercase tracking-[0.2em] mt-1.5 block px-1">
                                             {msg.role === 'user' ? 'Transmission' : 'Orchestrated'} • {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

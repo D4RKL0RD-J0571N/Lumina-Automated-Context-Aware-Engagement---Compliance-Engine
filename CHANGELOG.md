@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.2] - 2026-02-27
+
+### **UI & Presentation (Premium Polish)**
+- **Rich Markdown Support**: Integrated `ReactMarkdown` with `remark-gfm` for professional, structured AI responses.
+- **Premium Typography**: Added `.markdown-content` design system with glassmorphic code blocks, accented list markers, and improved readability.
+
+### **Security & Compliance (Regex Sentinel)**
+- **Whole-Word Matching**: Upgraded both Python and TypeScript scanners to use Regex word boundaries (`\b... \b`). This prevents false positives and ensures deterministic blocking of topics like 'cars' without catching partial overlaps.
+- **Zero-Echo Hardening**: Improved reliability of pre-scan rejection for out-of-scope general knowledge queries.
+
 ## [1.3.1] - 2026-02-27
 
 ### **Security & Compliance (Sentinel Hardening II)**

@@ -13,8 +13,12 @@ class Settings(BaseSettings):
     def assemble_cors_origins(cls, v: Any) -> Any:
         if isinstance(v, str) and not v.startswith("["):
             return [i.strip() for i in v.split(",")]
-        elif isinstance(v, (list, str)):
-            return v
+        elif isinstance(v, str) and v.startswith("["):
+            import json
+            try:
+                return json.loads(v)
+            except:
+                return []
         return v
 
     OPENAI_API_KEY: Optional[str] = None

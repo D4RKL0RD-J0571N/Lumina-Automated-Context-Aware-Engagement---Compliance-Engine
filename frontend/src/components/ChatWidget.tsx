@@ -89,12 +89,12 @@ const ChatWidget = () => {
         if (!inputValue.trim()) return;
 
         const userInput = inputValue;
-        const userMsg: ChatMessage = { id: Date.now().toString(), role: 'user', content: inputValue.trim(), timestamp: new Date() };
+        const userMsg: ChatMessage = { id: `user-${Date.now()}`, role: 'user', content: inputValue.trim(), timestamp: new Date() };
         setMessages(prev => [...prev, userMsg]);
         setInputValue('');
         setIsLoading(true);
 
-        const aiMsgId = Date.now().toString();
+        const aiMsgId = `ai-${Date.now()}`;
         // Add placeholder message for streaming
         setMessages(prev => [...prev, { id: aiMsgId, role: 'assistant', content: '', timestamp: new Date() }]);
 
@@ -235,11 +235,11 @@ const ChatWidget = () => {
                                 </motion.div>
                             )}
 
-                            {messages.map((msg, i) => (
+                            {messages.map((msg) => (
                                 <motion.div
                                     initial={{ opacity: 0, x: msg.role === 'user' ? 20 : -20 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    key={i}
+                                    key={msg.id}
                                     className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                                 >
                                     <div className={`max-w-[85%] p-3 rounded-2xl text-sm ${msg.role === 'user'

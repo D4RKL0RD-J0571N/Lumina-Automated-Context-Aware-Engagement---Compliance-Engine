@@ -18,7 +18,11 @@ import asyncio
 try:
     from openai import AsyncOpenAI
     if settings.LM_STUDIO_URL:
-        openai_client = AsyncOpenAI(api_key=settings.LM_STUDIO_API_KEY, base_url=settings.LM_STUDIO_URL)
+        openai_client = AsyncOpenAI(
+            api_key=settings.LM_STUDIO_API_KEY, 
+            base_url=settings.LM_STUDIO_URL,
+            default_headers={"ngrok-skip-browser-warning": "true"}
+        )
     elif settings.OPENAI_API_KEY:
         openai_client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
     else:

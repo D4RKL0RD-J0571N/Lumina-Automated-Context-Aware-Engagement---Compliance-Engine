@@ -40,6 +40,13 @@ class handler(BaseHTTPRequestHandler):
 
         if normalized in ['/domains', '/domains/']:
             self.send_json({"domains": DOMAINS})
+        elif normalized == '/ping':
+             # Connectivity Test
+             try:
+                 test = requests.get(LM_STUDIO_URL, timeout=10, headers={'ngrok-skip-browser-warning': 'true'})
+                 self.send_json({"status": "online", "ngrok_response": test.status_code, "url": LM_STUDIO_URL})
+             except Exception as e:
+                 self.send_json({"status": "offline", "error": str(e), "url": LM_STUDIO_URL})
         elif normalized == '/compliance/metrics':
             self.send_json({
                 "compliance_pass_rate": "99.7%",

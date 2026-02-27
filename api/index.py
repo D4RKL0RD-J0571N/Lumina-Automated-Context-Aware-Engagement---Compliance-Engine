@@ -118,7 +118,17 @@ def handler(request):
                     # Call LM Studio API
                     try:
                         parsed_url = urlparse(LM_STUDIO_URL)
-                        conn = http.client.HTTPSConnection(parsed_url.netloc)
+                        # Remove trailing slash and /v1 if present to avoid double paths
+                        clean_url = LM_STUDIO_URL.rstrip('/')
+                        if clean_url.endswith('/v1'):
+                            clean_url = clean_url[:-3]
+                            
+                        parsed_clean = urlparse(clean_url)
+                        
+                        if parsed_clean.scheme == 'https':
+                            conn = http.client.HTTPSConnection(parsed_clean.netloc, timeout=15)
+                        else:
+                            conn = http.client.HTTPConnection(parsed_clean.netloc, timeout=15)
                         
                         payload = {
                             "model": os.environ.get("LLM_MODEL", "meta-llama-3"),
@@ -131,10 +141,13 @@ def handler(request):
                             "temperature": 0.7
                         }
                         
-                        conn.request("POST", "/v1/chat/completions", json.dumps(payload).encode(), {
+                        headers = {
                             'Content-Type': 'application/json',
-                            'Authorization': f'Bearer {os.environ.get("LM_STUDIO_API_KEY", "")}'
-                        })
+                            'Authorization': f'Bearer {os.environ.get("LM_STUDIO_API_KEY", "")}',
+                            'ngrok-skip-browser-warning': 'true' # Essential for ngrok tunnels
+                        }
+                        
+                        conn.request("POST", "/v1/chat/completions", json.dumps(payload).encode(), headers)
                         
                         response = conn.getresponse()
                         response_body = response.read().decode()

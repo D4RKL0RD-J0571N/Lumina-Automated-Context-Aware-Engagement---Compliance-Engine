@@ -67,6 +67,20 @@ async def orchestrate_ai_response(request: OrchestrateRequest):
     """
     start_time = time.time()
     
+    # 🛡️ INPUT GUARDRAIL (Phase 5: Pre-scan Enforcement)
+    input_guardrail = guardrail_engine.scan_output(request.user_input, request.domain_name)
+    if not input_guardrail.is_safe:
+        return OrchestrateResponse(
+            domain=request.domain_name,
+            persona="Security Sentinel",
+            ai_response=f"ERROR [Compliance]: {input_guardrail.rejection_message}",
+            guardrail_result=input_guardrail,
+            is_bleeding=False,
+            bleed_events=[],
+            latency_ms=round((time.time() - start_time) * 1000, 2),
+            tokens_used=0
+        )
+
     # Redact User Input for safety
     safe_user_input = redactor.redact(request.user_input)
 
@@ -188,6 +202,13 @@ async def stream_orchestrator(request: OrchestrateRequest, persona: str, system_
     full_buffer = ""
     start_time = time.time()
     
+    # 🛡️ PRE-SCAN (Streaming)
+    input_guardrail = guardrail_engine.scan_output(request.user_input, request.domain_name)
+    if not input_guardrail.is_safe:
+        yield f"data: {json.dumps({'token': f'ERROR [Compliance]: {input_guardrail.rejection_message}'})}\n\n"
+        yield f"data: {json.dumps({'is_final': True, 'is_safe': False, 'classification': input_guardrail.classification, 'rejection_message': input_guardrail.rejection_message})}\n\n"
+        return
+
     if openai_client:
         try:
             model_name = settings.LLM_MODEL

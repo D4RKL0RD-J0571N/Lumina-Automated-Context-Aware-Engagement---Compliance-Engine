@@ -2,6 +2,23 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [1.3.0] - 2026-02-27
+
+### **Seguridad y Cumplimiento (Fase 7: Endurecimiento de Sentinel)**
+- **Ejecución Zero-Echo**: Implementación de pre-escaneo determinista de entrada para bloquear prompts violatorios o fuera de alcance *antes* de que lleguen al LLM.
+- **Detección fuera de alcance (Out-of-Scope)**: Se añadió detección de firmas entre dominios usando `DOMAIN_SIGNATURES` para forzar límites estrictos de contexto.
+- **Paridad Arquitectónica**: Sincronización de la lógica del Motor de Guardrails entre FastAPI (Python) y Supabase Edge Functions (TypeScript).
+- **Hardening de Prompts L1**: Actualización de instrucciones universales para forzar lealtad determinista al personaje y comportamiento de "Bloqueo de Contexto".
+
+### **Frontend y UX**
+- **UI de Chat Premium**: Integración de marca de agua "Secure Channel" e indicadores visuales persistentes de "Contexto Bloqueado".
+- **Estilo de Eventos de Seguridad**: Estandarización de las anulaciones de cumplimiento como eventos de seguridad profesionales con iconos específicos y estados de alerta roja.
+- **Respuesta Mejorada**: Optimización del diseño del Widget de Chat para mejor legibilidad de texto y visualización de metadatos estructurados.
+
+### **Interno**
+- Refactorización de `GuardrailEngine` a una clase en TypeScript para mejor mantenibilidad.
+- Adición de palabras clave de paridad de la arquitectura de referencia CRM Human-in-the-Loop.
+
 ## [1.2.0] - 2026-02-26
 ### Corregido
 - **CRÍTICO**: Todos los endpoints de API devolvían 404 en producción por desajuste de rutas URL.

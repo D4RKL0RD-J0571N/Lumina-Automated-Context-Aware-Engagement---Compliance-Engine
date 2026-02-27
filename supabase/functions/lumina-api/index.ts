@@ -197,6 +197,35 @@ async function handleOrchestrate(req: Request) {
 
     const domainConfig = DOMAINS[domain_name] || DOMAINS['fishing.com']
 
+    // 🛡️ INPUT GUARDRAIL: Pre-scan message for violations or out-of-scope intent
+    const inputGuardrail = GuardrailEngine.scan(user_input, domain_name)
+
+    if (!inputGuardrail.is_safe) {
+      const coldResponse = `ERROR [Compliance]: ${inputGuardrail.rejection_message}`
+
+      const responsePayload = {
+        domain: domain_name,
+        persona: domainConfig.persona,
+        ai_response: coldResponse,
+        is_safe: false,
+        classification: inputGuardrail.classification,
+        rejection_message: inputGuardrail.rejection_message,
+        guardrail_result: inputGuardrail,
+        is_bleeding: false,
+        latency_ms: 10,
+        source: "guardrail_pre_scan"
+      }
+
+      if (stream) {
+        return new Response(
+          `data: ${JSON.stringify(responsePayload)}\n\n`,
+          { headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' } }
+        )
+      }
+      return new Response(JSON.stringify(responsePayload), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    // 🚀 PROCEED TO AI: Layered prompts and inference
     // Clean up the URL
     let url = LM_STUDIO_URL.endsWith('/') ? LM_STUDIO_URL.slice(0, -1) : LM_STUDIO_URL
     if (!url.endsWith('/v1')) {
@@ -249,20 +278,20 @@ async function handleOrchestrate(req: Request) {
       source = "fallback"
     }
 
+    // 🛡️ OUTPUT GUARDRAIL: Post-inference scan
+    const outputGuardrail = GuardrailEngine.scan(ai_response, domain_name)
+    const final_ai_response = outputGuardrail.is_safe ? ai_response : `ERROR [Compliance]: ${outputGuardrail.rejection_message}`
+
     const resultPayload = {
       domain: domain_name,
       persona: domainConfig.persona,
-      ai_response,
+      ai_response: final_ai_response,
       // Flat keys for frontend streaming compatibility
-      is_safe: true,
-      classification: "safe",
-      rejection_message: "",
+      is_safe: outputGuardrail.is_safe,
+      classification: outputGuardrail.classification,
+      rejection_message: outputGuardrail.rejection_message,
       // Nested object for traditional API compatibility
-      guardrail_result: {
-        is_safe: true,
-        classification: "safe",
-        rejection_message: ""
-      },
+      guardrail_result: outputGuardrail,
       is_bleeding: false,
       bleed_events: [],
       latency_ms: 145,
@@ -274,7 +303,7 @@ async function handleOrchestrate(req: Request) {
     if (stream) {
       // Pseudo-streaming for frontend compatibility
       const streamData = [
-        `data: ${JSON.stringify({ token: ai_response })}\n\n`,
+        `data: ${JSON.stringify({ token: final_ai_response })}\n\n`,
         `data: ${JSON.stringify(resultPayload)}\n\n`
       ].join('')
 
@@ -310,50 +339,70 @@ async function handleOrchestrate(req: Request) {
   }
 }
 
+/** Guardrail Engine — Deterministic Security Sentinel */
+class GuardrailEngine {
+  static SECURITY_KEYWORDS = [
+    'idiot', 'stupid', 'kill', 'hate', 'die', 'attack', 'hacker', 'exploit',
+    'sql injection', 'bypass', 'pendejo', 'estúpido', 'maldito'
+  ]
+  static LEGAL_KEYWORDS = ['legal advice', 'lawyer', 'lawsuit', 'sue', 'attorney', 'abogado', 'demanda', 'juicio']
+  static MEDICAL_KEYWORDS = ['prescription', 'diagnose', 'medication', 'dosage', 'mg', 'médico', 'herida', 'hospital']
+  static AD_POLICY_KEYWORDS = ['click here', 'free money', 'guaranteed', 'act now', 'free cash', 'casino', 'gambling']
+
+  static DOMAIN_SIGNATURES = {
+    "fishing.com": ["fishing", "bass", "lure", "tackle", "bait", "hook", "water", "catch", "release"],
+    "householdmanuals.com": ["manual", "repair", "dryer", "hvac", "appliance", "breaker", "electrical", "diy", "fixit"],
+    "localnews.org": ["council", "meeting", "local", "community", "news", "reporting", "detour", "street", "park proposal"]
+  }
+
+  static scan(content: string, domainContext?: string) {
+    const msgLower = content.toLowerCase()
+
+    if (this.SECURITY_KEYWORDS.some(kw => msgLower.includes(kw))) {
+      return { is_safe: false, classification: 'security_violation', rejection_message: 'Content flagged for security violation' }
+    }
+    if (this.LEGAL_KEYWORDS.some(kw => msgLower.includes(kw))) {
+      return { is_safe: false, classification: 'legal_violation', rejection_message: 'I am not authorized to provide legal advice.' }
+    }
+    if (this.MEDICAL_KEYWORDS.some(kw => msgLower.includes(kw))) {
+      return { is_safe: false, classification: 'medical_violation', rejection_message: 'I cannot provide medical advice or handle medical emergencies.' }
+    }
+    if (this.AD_POLICY_KEYWORDS.some(kw => msgLower.includes(kw))) {
+      return { is_safe: false, classification: 'ad_policy_violation', rejection_message: 'Content violates advertising safety guidelines.' }
+    }
+
+    if (domainContext) {
+      const normalizedDomain = domainContext.toLowerCase()
+      for (const [domain, keywords] of Object.entries(this.DOMAIN_SIGNATURES)) {
+        if (domain === normalizedDomain) continue
+        const triggers = keywords.filter(kw => msgLower.includes(kw))
+        if (triggers.length >= 2) { // Sensitivity threshold
+          return {
+            is_safe: false,
+            classification: 'out_of_scope',
+            rejection_message: `I am strictly configured for ${normalizedDomain}. For information about ${domain}, please switch contexts.`
+          }
+        }
+      }
+    }
+
+    return { is_safe: true, classification: 'in_scope', rejection_message: '' }
+  }
+}
+
 /** Guardrail scan — mirrors backend keyword-based compliance checking */
 async function handleGuardrailScan(req: Request) {
   try {
     const data = await req.json()
-    const content = (data.content || '').toLowerCase()
-
-    const SECURITY_KEYWORDS = ['idiot', 'stupid', 'kill', 'hate', 'die', 'attack']
-    const LEGAL_KEYWORDS = ['legal advice', 'lawyer', 'lawsuit', 'sue', 'attorney']
-    const MEDICAL_KEYWORDS = ['prescription', 'diagnose', 'medication', 'dosage', 'mg']
-    const AD_POLICY_KEYWORDS = ['click here', 'free money', 'guaranteed', 'act now', 'free cash']
-
-    let is_safe = true
-    let classification = 'in_scope'
-    let rejection_message = ''
-
-    if (SECURITY_KEYWORDS.some(kw => content.includes(kw))) {
-      is_safe = false
-      classification = 'security_violation'
-      rejection_message = 'Content flagged for security violation'
-    } else if (LEGAL_KEYWORDS.some(kw => content.includes(kw))) {
-      is_safe = false
-      classification = 'legal_violation'
-      rejection_message = 'Content flagged for legal policy violation'
-    } else if (MEDICAL_KEYWORDS.some(kw => content.includes(kw))) {
-      is_safe = false
-      classification = 'medical_violation'
-      rejection_message = 'Content flagged for medical policy violation'
-    } else if (AD_POLICY_KEYWORDS.some(kw => content.includes(kw))) {
-      is_safe = false
-      classification = 'ad_policy_violation'
-      rejection_message = 'Content flagged for advertising policy violation'
-    }
-
+    const result = GuardrailEngine.scan(data.content || '', data.domain)
     return new Response(
-      JSON.stringify({ is_safe, classification, rejection_message }),
+      JSON.stringify(result),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
     return new Response(
       JSON.stringify({ error: 'Scan failed', details: (error as Error).message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
 }

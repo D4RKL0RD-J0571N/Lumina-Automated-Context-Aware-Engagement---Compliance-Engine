@@ -27,11 +27,18 @@ class GuardrailEngine:
         "click here for free money", "casino", "gambling", "adult content"
     ]
 
+    # 🔹 CROSS-DOMAIN SIGNATURES (For Out-of-Scope detection)
+    DOMAIN_SIGNATURES = {
+        "fishing.com": ["fishing", "bass", "lure", "tackle", "bait", "hook", "water", "catch", "release"],
+        "householdmanuals.com": ["manual", "repair", "dryer", "hvac", "appliance", "breaker", "electrical", "diy", "fixit"],
+        "localnews.org": ["council", "meeting", "local", "community", "news", "reporting", "detour", "street", "park proposal"]
+    }
+
     @classmethod
     def scan_output(cls, message: str, domain_context: str = "") -> GuardrailResult:
         """
         Deterministically scan AI-generated output (or user input)
-        against the Compliance Lexicon.
+        against the Compliance Lexicon and Domain Boundaries.
         """
         msg_lower = message.lower()
         
@@ -65,7 +72,24 @@ class GuardrailEngine:
                 rejection_message="I am not authorized to provide legal advice or discuss pending litigation."
             )
 
-        # 4. Ad-Policy / Monetization Check
+        # 4. Domain-Lock Check (Out of Scope)
+        # If we have a domain context, ensure the message doesn't belong to another domain's lexicon
+        if domain_context:
+            domain_context = domain_context.lower()
+            for domain, keywords in cls.DOMAIN_SIGNATURES.items():
+                if domain == domain_context:
+                    continue
+                # If the input contains strong signatures of OTHER domains
+                other_triggers = [kw for kw in keywords if kw in msg_lower]
+                if other_triggers and len(other_triggers) >= 1: # Sensitivity threshold
+                    return GuardrailResult(
+                        classification=GuardrailClassification.OUT_OF_SCOPE,
+                        triggered_keywords=other_triggers,
+                        is_safe=False,
+                        rejection_message=f"I am strictly configured for {domain_context}. For information about {domain}, please switch contexts."
+                    )
+
+        # 5. Ad-Policy / Monetization Check
         ad_triggers = [kw for kw in cls.AD_POLICY_KEYWORDS if kw in msg_lower]
         if ad_triggers:
             return GuardrailResult(

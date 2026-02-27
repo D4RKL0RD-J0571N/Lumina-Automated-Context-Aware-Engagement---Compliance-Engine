@@ -7,7 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.2.0] - 2026-02-26
+## [1.3.0] - 2026-02-27
+
+### **Security & Compliance (Phase 7: Sentinel Hardening)**
+- **Zero-Echo Enforcement**: Implemented deterministic input pre-scanning to block violating or out-of-scope prompts *before* reaching the LLM.
+- **Out-of-Scope Detection**: Added cross-domain signature detection using `DOMAIN_SIGNATURES` to enforce strict context boundaries.
+- **Architectural Parity**: Synchronized Guardrail Engine logic between FastAPI (Python) and Supabase Edge Functions (TypeScript).
+- **Hardened L1 Prompts**: Updated universal system instructions to enforce deterministic character loyalty and "Context Lock" behavior.
+
+### **Frontend & UX**
+- **Premium Chat UI**: Integrated "Secure Channel" watermarking and persistent "Context Locked" visual indicators.
+- **Security Event Styling**: Standardized compliance overrides as professional security events with specific icons and red-alert states.
+- **Improved Responsiveness**: Optimized the Chat Widget layout for better text legibility and structured metadata display.
+
+### **Internal**
+- Refactored `GuardrailEngine` into a class in TypeScript for better maintainability.
+- Added parity Keywords from the CRM Human-in-the-Loop reference architecture.
 
 ### **CRITICAL FIX: Production 404 Resolved**
 - **FIXED**: All API endpoints returning 404 in production due to URL path mismatch

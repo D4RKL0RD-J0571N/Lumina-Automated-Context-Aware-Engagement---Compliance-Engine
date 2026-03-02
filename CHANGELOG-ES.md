@@ -4,6 +4,11 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 ## [Sin publicar]
 
+### **Seguridad y Cumplimiento (Persona Restrictiva)**
+- **Ejecución de Reglas C/D/E**: Se endurecieron los prompts de la Capa 1 (L1) para prohibir explícitamente acciones fuera de alcance y desviaciones de la persona (p. ej., pedir comida).
+- **Léxico Prohibido Expandido**: Se añadieron listas completas de palabras clave para 'Comida, Entrega y Pedidos' (tanto en inglés como en español) al Motor de Guardrails para evitar filtraciones de contexto hacia servicios generales.
+- **Composición de Prompts Mejorada**: Se mejoró el `PromptLayerEngine` para integrar correctamente el conocimiento del dominio desde el registro con respaldos robustos.
+
 ## [1.3.5] - 2026-02-27
 
 ### **Seguridad y Cumplimiento (Sugerencias Inteligentes)**

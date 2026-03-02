@@ -42,6 +42,9 @@ class GuardrailEngine:
         "celebrity gossip", "hollywood",
         "sports scores", "nfl", "nba", "fifa",
         "recipe", "cooking tips", "how to bake",
+        "food", "pizza", "burger", "restaurant", "taco bell", "mcdonalds",
+        "ordering", "order for me", "delivery", "entregar", "comida", "pizzas",
+        "ordenar", "restaurante", "hamburguesa",
         "stock market tips", "investment advice"
     ]
 

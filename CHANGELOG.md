@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### **Security & Compliance (Restrictive Persona)**
+- **Rule C/D/E Enforcement**: Hardened Layer 1 (L1) prompts to explicitly forbid out-of-scope actions and persona departures (e.g., ordering food).
+- **Expanded Forbidden Lexicon**: Added comprehensive keyword lists for 'Food, Delivery, and Ordering' (both English and Spanish) to the Guardrail Engine to prevent cross-domain bleed-through to general services.
+- **Improved Prompt Composition**: Enhanced the PromptLayerEngine to correctly integrate domain knowledge from the registry with robust fallbacks.
+
 ## [1.3.5] - 2026-02-27
 
 ### **Security & Compliance (Smart Suggestions)**

@@ -52,7 +52,8 @@ class GuardrailEngine:
         "food", "pizza", "burger", "restaurant", "taco bell", "mcdonalds",
         "ordering", "order for me", "delivery", "entregar", "comida", "pizzas",
         "ordenar", "restaurante", "hamburguesa",
-        "stock market tips", "investment advice"
+        "stock market tips", "investment advice", "market shares",
+        "lumina engine", "programming name", "ai model", "ai assistant", "as an ai"
     ]
 
     @classmethod
@@ -97,7 +98,7 @@ class GuardrailEngine:
                 classification=GuardrailClassification.OUT_OF_SCOPE,
                 triggered_keywords=[general_trigger],
                 is_safe=False,
-                rejection_message=f"I am strictly authorized to assist with {domain_context or 'my assigned domain'}. General knowledge topics like '{general_trigger}' are outside my operational scope."
+                rejection_message=f"I am only authorized to assist with {domain_context or 'my assigned domain'} related inquiries."
             )
         
         # 3. Medical Check (High Risk)
@@ -138,12 +139,11 @@ class GuardrailEngine:
                 primary_match = re.search(rf"\b{re.escape(keywords[0].lower())}\b", msg_lower)
                 
                 if len(matches) >= 2 or (len(matches) == 1 and primary_match):
-                    domain_label = domain.split('.')[0]
                     return GuardrailResult(
                         classification=GuardrailClassification.OUT_OF_SCOPE,
                         triggered_keywords=matches,
                         is_safe=False,
-                        rejection_message=f"I am strictly authorized for {domain_context}. However, I detected interest in {domain_label}. Please switch to the {domain} domain for specialized assistance."
+                        rejection_message=f"I am only authorized to assist with {domain_context} related inquiries."
                     )
 
         # 6. Ad-Policy / Monetization Check

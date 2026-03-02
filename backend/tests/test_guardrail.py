@@ -55,3 +55,11 @@ def test_guardrail_steam_trigger():
     result = guardrail_engine.scan_output("Can you buy a game for me in Steam?", "fishing.com")
     assert result.is_safe is False
     assert result.classification.value == "out_of_scope"
+
+def test_guardrail_sentient_slip():
+    # Test 'I don't have feelings/ability' identity slip
+    msg = "As an AI assistant, I don't have the ability to think in fishes. My primary function is..."
+    result = guardrail_engine.scan_output(msg, "fishing.com")
+    assert result.is_safe is False
+    assert result.classification.value == "security_violation"
+    assert result.rejection_message == "I am only authorized to assist with fishing.com related inquiries."

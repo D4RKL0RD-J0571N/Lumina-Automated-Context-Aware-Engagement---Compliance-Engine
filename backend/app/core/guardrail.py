@@ -34,7 +34,10 @@ class GuardrailEngine:
         "system prompt", "internal instructions", "Rule A:", "Rule B:", "Rule C:", 
         "Rule D:", "Rule E:", "obey the rules", "firmly decline", "strictly restricted to",
         "as an ai language model", "cannot discuss topics related to politics",
-        "i'm sorry, but i can't assist", "i am unable to help", "as an artificial intelligence"
+        "i am sorry", "i'm sorry", "can't assist with that", "cannot assist with that",
+        "i am unable to help", "as an artificial intelligence", "primary function is to",
+        "don't have the ability to", "do not have the ability to", "ai assistant",
+        "thinking in fishes", "programming name", "lumina engine"
     ]
 
     # 🔹 CROSS-DOMAIN SIGNATURES (For Out-of-Scope detection)
@@ -50,8 +53,8 @@ class GuardrailEngine:
         "astronomy", "space shuttle", "galaxies",
         "celebrity gossip", "hollywood",
         "sports scores", "nfl", "nba", "fifa",
-        "recipe", "cooking tips", "how to bake",
-        "food", "pizza", "burger", "restaurant", "taco bell", "mcdonalds",
+        "receta", "cocina", "cocinar",
+        "food", "pizza", "burger", "restaurant", "taco bell", "mcdonalds", "hamburgers", "aliens",
         "ordering", "order for me", "delivery", "entregar", "comida", "pizzas",
         "ordenar", "restaurante", "hamburguesa",
         "stock market tips", "investment advice", "market shares",

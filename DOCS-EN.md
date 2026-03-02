@@ -41,6 +41,7 @@ Lumina 0.4.0 introduces a **Hybrid Cloud-Local Bridge**. The React frontend live
 The **Guardrail Engine** is a deterministic validator that scans LLM outputs for:
 *   **Safety Violations**: Hate speech, violence, self-harm.
 *   **Restricted Topics**: Legal advice, medical prescriptions, financial hacking.
+*   **Operational Scope**: Explicitly blocks requests for out-of-scope services such as food ordering, delivery, and non-domain commerce.
 *   **Policy Compliance**: Advertisement policy and copyright protection.
 
 ### 3.2 Bleed-Through Detection

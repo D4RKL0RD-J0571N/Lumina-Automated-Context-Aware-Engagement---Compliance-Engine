@@ -41,6 +41,7 @@ Lumina 0.4.0 introduce un **Puente Híbrido Nube-Local**. El frontend de React v
 El **Motor de Guardrails** es un validador determinista que escanea las salidas del LLM en busca de:
 *   **Violaciones de Seguridad**: Discurso de odio, violencia, autolesiones.
 *   **Temas Restringidos**: Asesoramiento legal, recetas médicas, piratería financiera.
+*   **Alcance Operacional**: Bloquea explícitamente solicitudes de servicios fuera de alcance, como pedidos de comida, entregas a domicilio y comercio no relacionado con el dominio.
 *   **Cumplimiento de Políticas**: Política publicitaria y protección de derechos de autor.
 
 ### 3.2 Detección de Filtración (Bleed-Through Detection)

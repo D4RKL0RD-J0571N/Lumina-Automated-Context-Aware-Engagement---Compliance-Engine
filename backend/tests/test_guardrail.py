@@ -41,3 +41,17 @@ def test_guardrail_system_leakage():
     assert result.is_safe is False
     assert result.classification.value == "security_violation"
     assert "authorized to assist with fishing.com" in result.rejection_message
+
+def test_guardrail_ai_refusal_leakage():
+    # Test leakage of generic AI refusal messages
+    refusal_msg = "As an AI language model, I cannot discuss topics related to politics."
+    result = guardrail_engine.scan_output(refusal_msg, "fishing.com")
+    assert result.is_safe is False
+    assert result.classification.value == "security_violation"
+    assert "authorized to assist with fishing.com" in result.rejection_message
+
+def test_guardrail_steam_trigger():
+    # Test Steam keyword
+    result = guardrail_engine.scan_output("Can you buy a game for me in Steam?", "fishing.com")
+    assert result.is_safe is False
+    assert result.classification.value == "out_of_scope"

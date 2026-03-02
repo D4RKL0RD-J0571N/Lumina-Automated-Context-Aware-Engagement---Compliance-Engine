@@ -28,11 +28,13 @@ class GuardrailEngine:
         "click here for free money", "casino", "gambling", "adult content"
     ]
 
-    # 🔹 SYSTEM LEAKAGE DETECTION
-    # Prevents the model from repeating its own rules or instructions to the user.
+    # 🔹 SYSTEM LEAKAGE & MODEL REFUSAL DETECTION
+    # Prevents the model from repeating its own rules or using generic AI apologies.
     SYSTEM_LEAK_KEYWORDS = [
         "system prompt", "internal instructions", "Rule A:", "Rule B:", "Rule C:", 
-        "Rule D:", "Rule E:", "obey the rules", "firmly decline", "strictly restricted to"
+        "Rule D:", "Rule E:", "obey the rules", "firmly decline", "strictly restricted to",
+        "as an ai language model", "cannot discuss topics related to politics",
+        "i'm sorry, but i can't assist", "i am unable to help", "as an artificial intelligence"
     ]
 
     # 🔹 CROSS-DOMAIN SIGNATURES (For Out-of-Scope detection)
@@ -53,6 +55,7 @@ class GuardrailEngine:
         "ordering", "order for me", "delivery", "entregar", "comida", "pizzas",
         "ordenar", "restaurante", "hamburguesa",
         "stock market tips", "investment advice", "market shares",
+        "steam", "buy a game", "video games", "politics", "religion",
         "lumina engine", "programming name", "ai model", "ai assistant", "as an ai"
     ]
 

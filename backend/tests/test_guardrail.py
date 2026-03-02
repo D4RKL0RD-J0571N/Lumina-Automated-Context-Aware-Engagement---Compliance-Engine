@@ -33,3 +33,11 @@ def test_guardrail_food_trigger_spanish():
     result = guardrail_engine.scan_output("Me gustaría pedir comida a domicilio.", "fishing.com")
     assert result.is_safe is False
     assert result.classification.value == "out_of_scope"
+
+def test_guardrail_system_leakage():
+    # Test leakage of internal rules
+    leakage_msg = "I must firmly decline because Rule C says I am restricted to fishing.com."
+    result = guardrail_engine.scan_output(leakage_msg, "fishing.com")
+    assert result.is_safe is False
+    assert result.classification.value == "security_violation"
+    assert "authorized to assist with fishing.com" in result.rejection_message

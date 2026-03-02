@@ -28,6 +28,13 @@ class GuardrailEngine:
         "click here for free money", "casino", "gambling", "adult content"
     ]
 
+    # 🔹 SYSTEM LEAKAGE DETECTION
+    # Prevents the model from repeating its own rules or instructions to the user.
+    SYSTEM_LEAK_KEYWORDS = [
+        "system prompt", "internal instructions", "Rule A:", "Rule B:", "Rule C:", 
+        "Rule D:", "Rule E:", "obey the rules", "firmly decline", "strictly restricted to"
+    ]
+
     # 🔹 CROSS-DOMAIN SIGNATURES (For Out-of-Scope detection)
     DOMAIN_SIGNATURES = {
         "fishing.com": ["fishing", "bass", "lure", "tackle", "bait", "hook", "water", "catch", "release"],
@@ -62,6 +69,16 @@ class GuardrailEngine:
                 if re.search(rf"\b{re.escape(kw.lower())}\b", msg_lower):
                     return kw
             return None
+
+        # 0. System Leakage Check (Pre-filter to prevent instruction leaks)
+        leak_trigger = find_trigger(cls.SYSTEM_LEAK_KEYWORDS)
+        if leak_trigger:
+            return GuardrailResult(
+                classification=GuardrailClassification.SECURITY_VIOLATION,
+                triggered_keywords=[leak_trigger],
+                is_safe=False,
+                rejection_message=f"I am only authorized to assist with {domain_context or 'my assigned domain'} related inquiries."
+            )
 
         # 1. Security Check (Highest Priority)
         security_trigger = find_trigger(cls.SECURITY_VIOLATION_KEYWORDS)
